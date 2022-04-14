@@ -2,9 +2,9 @@ import { createStore } from 'vuex'
 import createPersistedstate from 'vuex-persistedstate'
 
 // 模块
-import user from './modules/user'
-import cart from './modules/cart'
-import category from './modules/category'
+import user from './modules/user.store'
+import cart from './modules/cart.store'
+import category from './modules/category.store'
 
 // vue2 => new Vue.store({})
 // vue3 => createStore({})
