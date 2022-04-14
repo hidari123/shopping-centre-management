@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-      HomePage
+  <div class='xtx-home-page'>
+    首页
   </div>
 </template>
 
