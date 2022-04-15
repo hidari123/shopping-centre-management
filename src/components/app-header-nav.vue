@@ -1,33 +1,49 @@
 <template>
   <ul class="app-header-nav">
     <li class="home"><RouterLink to="/">首页</RouterLink></li>
-    <li>
-      <a href="#">美食</a>
-      <div class="layer">
+    <li v-for="item in list" :key="item.id" @mouseenter="show(item.id)" @mouseleave="hide(item.id)">
+      <router-link :to="`/category/${item.id}`"  @click="hide(item.id)">{{item.name}}</router-link>
+      <div class="layer" :class="{open: item.open}">
         <ul>
-          <li v-for="i in 10" :key="i">
-            <a href="#">
-              <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/img/category%20(4).png" alt="">
-              <p>果干</p>
-            </a>
+          <li v-for="sub in item.children" :key="sub.id">
+            <router-link :to="`/category/sub/${sub.id}`" @click="hide(item.id)">
+              <img :src="sub.picture" alt="">
+              <p>{{sub.name}}</p>
+            </router-link>
           </li>
         </ul>
       </div>
     </li>
-    <li><a href="#">餐厨</a></li>
-    <li><a href="#">艺术</a></li>
-    <li><a href="#">电器</a></li>
-    <li><a href="#">居家</a></li>
-    <li><a href="#">洗护</a></li>
-    <li><a href="#">孕婴</a></li>
-    <li><a href="#">服装</a></li>
-    <li><a href="#">杂货</a></li>
   </ul>
 </template>
 
 <script>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 export default {
-  name: 'AppHeaderNav'
+  name: 'AppHeaderNav',
+  setup () {
+    const store = useStore()
+    // 拿到 vuex 中的分类列表
+    const list = computed(() => {
+      return store.state.category.list
+    })
+    // 问题：跳转时不会关闭二级类目，通过数据控制
+    // 1. vuex 每个分类加上 open 数据
+    // 2. vuex 提供显示隐藏函数，修改 open 数据
+    // 3. 在组件中使用 vuex 中的函数，使用事件绑定，提供一个类名显示和隐藏
+    const show = (id) => {
+      store.commit('category/show', id)
+    }
+    const hide = (id) => {
+      store.commit('category/hide', id)
+    }
+    return {
+      list,
+      show,
+      hide
+    }
+  }
 }
 </script>
 
@@ -50,18 +66,18 @@ export default {
       display: inline-block;
     }
     &:hover {
-      > a {
+        > a{
         color: @xtxColor;
         border-bottom: 1px solid @xtxColor;
-      }
-      > .layer {
-        height: 132px;
-        opacity: 1;
-      }
+        }
     }
   }
 }
 .layer {
+    &.open {
+        height: 132px;
+        opacity: 1;
+    }
   width: 1240px;
   background-color: #fff;
   position: absolute;
