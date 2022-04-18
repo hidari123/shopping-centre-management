@@ -7,7 +7,7 @@ module.exports = {
       // 需要使用 path.join 拼接完整路径
       patterns: [
         path.join(__dirname, './src/assets/styles/variables.less'),
-        path.join(__dirname, './src/assets/styles/minxins.less')
+        path.join(__dirname, './src/assets/styles/mixins.less')
       ]
     }
   }

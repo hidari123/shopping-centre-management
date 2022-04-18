@@ -20,7 +20,7 @@
       <ul v-if="currCategory && currCategory.goods">
         <li v-for="goods in currCategory.goods" :key="goods.id">
           <RouterLink to="/">
-            <img :src="goods.picture" alt="">
+            <img v-lazy="goods.picture" alt="">
             <div class="info">
               <p class="name ellipsis-2">{{goods.name}}</p>
               <p class="desc ellipsis">{{goods.desc}}</p>
