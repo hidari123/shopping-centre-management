@@ -21,13 +21,19 @@
   - [首页-左侧分类品牌](#%E9%A6%96%E9%A1%B5-%E5%B7%A6%E4%BE%A7%E5%88%86%E7%B1%BB%E5%93%81%E7%89%8C)
   - [首页-左侧分类骨架](#%E9%A6%96%E9%A1%B5-%E5%B7%A6%E4%BE%A7%E5%88%86%E7%B1%BB%E9%AA%A8%E6%9E%B6)
   - [首页-轮播图](#%E9%A6%96%E9%A1%B5-%E8%BD%AE%E6%92%AD%E5%9B%BE)
+    - [基础布局](#%E5%9F%BA%E7%A1%80%E5%B8%83%E5%B1%80)
+    - [渲染结构](#%E6%B8%B2%E6%9F%93%E7%BB%93%E6%9E%84)
+    - [逻辑封装](#%E9%80%BB%E8%BE%91%E5%B0%81%E8%A3%85)
   - [首页-面板组件](#%E9%A6%96%E9%A1%B5-%E9%9D%A2%E6%9D%BF%E7%BB%84%E4%BB%B6)
   - [首页-新鲜好物](#%E9%A6%96%E9%A1%B5-%E6%96%B0%E9%B2%9C%E5%A5%BD%E7%89%A9)
   - [首页-人气推荐](#%E9%A6%96%E9%A1%B5-%E4%BA%BA%E6%B0%94%E6%8E%A8%E8%8D%90)
   - [首页-补充vue动画](#%E9%A6%96%E9%A1%B5-%E8%A1%A5%E5%85%85vue%E5%8A%A8%E7%94%BB)
   - [首页-骨架动画效果](#%E9%A6%96%E9%A1%B5-%E9%AA%A8%E6%9E%B6%E5%8A%A8%E7%94%BB%E6%95%88%E6%9E%9C)
   - [首页-数据懒加载](#%E9%A6%96%E9%A1%B5-%E6%95%B0%E6%8D%AE%E6%87%92%E5%8A%A0%E8%BD%BD)
-  - [首页-热门品牌（作业）](#%E9%A6%96%E9%A1%B5-%E7%83%AD%E9%97%A8%E5%93%81%E7%89%8C%E4%BD%9C%E4%B8%9A)
+  - [首页-热门品牌](#%E9%A6%96%E9%A1%B5-%E7%83%AD%E9%97%A8%E5%93%81%E7%89%8C)
+  - [首页-商品区块](#%E9%A6%96%E9%A1%B5-%E5%95%86%E5%93%81%E5%8C%BA%E5%9D%97)
+  - [首页-最新专题](#%E9%A6%96%E9%A1%B5-%E6%9C%80%E6%96%B0%E4%B8%93%E9%A2%98)
+  - [首页-图片懒加载](#%E9%A6%96%E9%A1%B5-%E5%9B%BE%E7%89%87%E6%87%92%E5%8A%A0%E8%BD%BD)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -2020,17 +2026,284 @@ export const getBrand = (limit) => request("/home/brand", "get", { limit });
 
 ## 首页-轮播图
 
-> 目标：使用轮播图组件完成首页轮播图功能
+### 基础布局
+> 目标：使用轮播图组件完成首页轮播图功能，第一步：基础结构的使用。
 
 大致步骤：
 
-- 知道 `XtxCarousel` 组件基本使用
-- 使用 `XtxCarousel` 组件，样式覆盖
-- 定义API，获取数据给轮播图
-
-
+- 准备xtx-carousel组件基础布局，全局注册
+- 准备home-banner组件，使用xtx-carousel组件，再首页注册使用。
+- 深度作用xtx-carousel组件的默认样式
 
 落地代码：
+
+轮播图基础结构 `src/components/library/xtx-carousel.vue`
+```vue
+<template>
+  <div class='xtx-carousel'>
+    <ul class="carousel-body">
+      <li class="carousel-item fade">
+        <RouterLink to="/">
+          <img src="http://yjy-xiaotuxian-dev.oss-cn-beijing.aliyuncs.com/picture/2021-04-15/1ba86bcc-ae71-42a3-bc3e-37b662f7f07e.jpg" alt="">
+        </RouterLink>
+      </li>
+    </ul>
+    <a href="javascript:;" class="carousel-btn prev"><i class="iconfont icon-angle-left"></i></a>
+    <a href="javascript:;" class="carousel-btn next"><i class="iconfont icon-angle-right"></i></a>
+    <div class="carousel-indicator">
+      <span v-for="i in 5" :key="i"></span>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'XtxCarousel'
+}
+</script>
+<style scoped lang="less">
+.xtx-carousel{
+  width: 100%;
+  height: 100%;
+  min-width: 300px;
+  min-height: 150px;
+  position: relative;
+  .carousel{
+    &-body {
+      width: 100%;
+      height: 100%;
+    }
+    &-item {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      transition: opacity 0.5s linear;
+      &.fade {
+        opacity: 1;
+        z-index: 1;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    &-indicator {
+      position: absolute;
+      left: 0;
+      bottom: 20px;
+      z-index: 2;
+      width: 100%;
+      text-align: center;
+      span {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 50%;
+        cursor: pointer;
+        ~ span {
+          margin-left: 12px;
+        }
+        &.active {
+          background:  #fff;
+        }
+      }
+    }
+    &-btn {
+      width: 44px;
+      height: 44px;
+      background: rgba(0,0,0,.2);
+      color: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 228px;
+      z-index: 2;
+      text-align: center;
+      line-height: 44px;
+      opacity: 0;
+      transition: all 0.5s;
+      &.prev{
+        left: 20px;
+      }
+      &.next{
+        right: 20px;
+      }
+    }
+  }
+  &:hover {
+    .carousel-btn {
+      opacity: 1;
+    }
+  }
+}
+</style>
+```
+
+- 全局注册轮播图 `src/components/library/index.js`
+```diff
+import XtxSkeleton from './xtx-skeleton.vue'
++import XtxCarousel from './xtx-carousel.vue'
+
+export default {
+  install (app) {
+    app.component(XtxSkeleton.name, XtxSkeleton)
++    app.component(XtxCarousel.name, XtxCarousel)
+  }
+}
+```
+
+首页广告组件基础结构 `src/views/home/components/home-banner.vue`
+```vue
+<template>
+  <div class="home-banner">
+    <XtxCarousel />
+  </div>
+</template>
+<script>
+export default {
+  name: 'HomeBanner'
+}
+</script>
+<style scoped lang="less">
+.home-banner {
+  width: 1240px;
+  height: 500px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 98
+}
+</style>
+```
+
+- 首页使用广告组件
+```diff
+<template>
++  <!-- 首页入口 -->
++  <div class="home-entry">
++    <div class="container">
+      <!-- 左侧分类 -->
+      <HomeCategory />
+      <!-- 轮播图 -->
+      <HomeBanner />
+    </div>
+  </div>
+</template>
+<script>
+import HomeCategory from './components/home-category'
++import HomeBanner from './components/home-banner'
+export default {
+  name: 'HomePage',
+  components: {
++    HomeCategory,
+    HomeBanner
+  }
+}
+</script>
+<style scoped lang="less"></style>
+```
+
+覆盖轮播图组件样式 `src/views/home/components/home-banner.vue`
+```less
+.xtx-carousel {
+  ::v-deep .carousel-btn.prev {
+    left: 270px;
+  }
+  ::v-deep .carousel-indicator {
+    padding-left: 250px;
+  }
+}
+```
+
+### 渲染结构
+> 目的： 封装轮播图组件，第二步：动态渲染结构。
+
+大致步骤：
+
+- 定义获取广告图API函数
+- 在home-banner组件获取轮播图数据，传递给xtx-carousel组件
+- 在xtx-carousel组件完成渲染
+
+落地代码：
+
+- API函数 `src/api/home.js`
+
+```js
+/**
+ * 获取广告图
+ * @returns Promise
+ */
+export const findBanner = () => {
+  return request('/home/banner', 'get')
+}
+```
+
+- 广告组件获取数据，传给轮播图 `src/views/home/components/home-banner.vue`
+
+```diff
+<template>
+  <div class="home-banner">
++    <XtxCarousel :sliders="sliders" />
+  </div>
+</template>
+<script>
+import { ref } from 'vue'
+import { findBanner } from '@/api/home'
+export default {
+  name: 'HomeBanner',
++  setup () {
++    const sliders = ref([])
++    findBanner().then(data => {
++      sliders.value = data.result
++    })
++    return { sliders }
++  }
+}
+</script>
+```
+
+- 完成轮播图结构渲染 `src/components/library/xtx-carousel.vue`
+```diff
+<template>
+  <div class='xtx-carousel'>
+    <ul class="carousel-body">
++      <li class="carousel-item" v-for="(item,i) in sliders" :key="i" :class="{fade:index===i}">
+        <RouterLink to="/">
++          <img :src="item.imgUrl" alt="">
+        </RouterLink>
+      </li>
+    </ul>
+    <a href="javascript:;" class="carousel-btn prev"><i class="iconfont icon-angle-left"></i></a>
+    <a href="javascript:;" class="carousel-btn next"><i class="iconfont icon-angle-right"></i></a>
+    <div class="carousel-indicator">
++      <span v-for="(item,i) in sliders" :key="i" :class="{active:index===i}"></span>
+    </div>
+  </div>
+</template>
+
+<script>
++import { ref } from 'vue'
+export default {
+  name: 'XtxCarousel',
++  props: {
++    sliders: {
++      type: Array,
++      default: () => []
++    }
++  },
++  setup () {
++    // 默认显示的图片的索引
++    const index = ref(0)
++    return { index }
++  }
+}
+</script>
+```
+**总结：** fade是控制显示那张图片的，需要一个默认索引数据，渲染第一张图和激活第一个点。
+
 
 - 知道 `XtxCarousel` 组件基本使用
 
@@ -2042,72 +2315,111 @@ export const getBrand = (limit) => request("/home/brand", "get", { limit });
 
 - 使用 `XtxCarousel` 组件，样式覆盖
 
-```diff
-        <!-- 左侧分类 -->
-        <HomeCategory />
-+        <div class="home-banner">
-+          <!-- 轮播图 -->
-+          <XtxCarousel :sliders="[]"></XtxCarousel>
-+        </div>
-```
+### 逻辑封装
+> 目的： 封装轮播图组件，第三步：逻辑功能实现。
 
-```vue
-<style lang="less" scoped>
-.home-banner {
-  width: 1240px;
-  height: 500px;
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 98;
-  .xtx-carousel {
-    width: 100%;
-    height: 100%;
-    :deep(.carousel-btn.prev) {
-      left: 270px;
-    }
-    :deep(.carousel-indicator) {
-      padding-left: 250px;
-    }
+大致步骤：
+
+- 自动播放，暴露自动轮播属性，设置了就自动轮播
+- 如果有自动播放，鼠标进入离开，暂停，开启
+- 指示器切换，上一张，下一张
+- 销毁组件，清理定时器
+
+落地代码： `src/components/library/xtx-carousel.vue`
+
+- 自动轮播实现
+
+```diff
++import { ref, watch } from 'vue'
+export default {
+  name: 'XtxCarousel',
+  props: {
+    sliders: {
+      type: Array,
+      default: () => []
+    },
++    duration: {
++      type: Number,
++      default: 3000
++    },
++    autoPlay: {
++      type: Boolean,
++      default: false
++    }
+  },
+  setup (props) {
+    // 默认显示的图片的索引
+    const index = ref(0)
++    // 自动播放
++    let timer = null
++    const autoPlayFn = () => {
++      clearInterval(timer)
++      timer = setInterval(() => {
++        index.value++
++        if (index.value >= props.sliders.length) {
++          index.value = 0
++        }
++      }, props.duration)
++    }
++    watch(() => props.sliders, (newVal) => {
++      // 有数据&开启自动播放，才调用自动播放函数
++      if (newVal.length && props.autoPlay) {
++        index.value = 0
++        autoPlayFn()
++      }
++    }, { immediate: true })
++
+    return { index }
   }
 }
-</style>
 ```
 
-- 定义API，获取数据给轮播图
-
-`api/home.js`
-
+- 如果有自动播放，鼠标进入离开，暂停，开启
 ```js
-// 获取轮播图数据
-export const getSliders = () => request("/home/banner", "get");
+// 鼠标进入停止，移出开启自动，前提条件：autoPlay为true
+const stop = () => {
+    if (timer) clearInterval(timer)
+}
+const start = () => {
+    if (props.sliders.length && props.autoPlay) {
+    autoPlayFn()
+    }
+}
+
+return { index, stop, start }
 ```
 
-`home/index.vue`
+```diff
++  <div class='xtx-carousel' @mouseenter="stop()" @mouseleave="start()">
+```
+使用需要加 auto-play `<XtxCarousel auto-play :sliders="sliders" />`
 
+- 指示器切换，上一张，下一张
 ```js
-import { onMounted, ref } from "vue";
-import HomeCategory from "./components/home-category";
-import { getSliders } from "@/api/home";
-export default {
-  name: "XtxHomePage",
-  components: { HomeCategory },
-  setup() {
-    // 获取轮播图数据
-    const sliders = ref([]);
-    onMounted(async () => {
-      const data = await getSliders();
-      sliders.value = data.result;
-    });
-    return { sliders };
-  },
-};
+// 上一张下一张
+const toggle = (step) => {
+    const newIndex = index.value + step
+    if (newIndex >= props.sliders.length) {
+    index.value = 0
+    return
+    }
+    if (newIndex < 0) {
+    index.value = props.sliders.length - 1
+    return
+    }
+    index.value = newIndex
+}
+
+return { index, stop, start, toggle }
 ```
 
-```vue
-<XtxCarousel :sliders="sliders" autoPlay></XtxCarousel>
+- 销毁组件，清理定时器
+```js
+// 组件消耗，清理定时器
+onUnmounted(() => {
+    clearInterval(timer)
+})
 ```
-
 
 
 ## 首页-面板组件
@@ -2116,10 +2428,15 @@ export default {
 
 封装思路：
 
-- 头部：标题和副标题由props传入，右侧内容通过#right插槽传入
+- 头部：
+    - 标题和副标题由props传入
+    - 右侧内容通过#right插槽传入
+        - 查看更多使用次数多封装成全局组件
 - 主体：通过默认插槽传入
 
-![image-20220320144743371](./images/image-20220320144743371.png)
+![image-20220320144743371](https://gitee.com/zhoushugang/vue3-note/raw/master/images/image-20220320144743371.png)
+
+
 
 落地代码：
 
@@ -2315,16 +2632,16 @@ export default {
 ```
 
 ```vue
-        <li v-for="item in list" :key="item.id">
-          <RouterLink to="/">
-            <img :src="item.picture" />
-            <p class="name ellipsis">{{ item.name }}</p>
-            <p class="price">&yen;{{ item.price }}</p>
-          </RouterLink>
-        </li>
+<li v-for="item in list" :key="item.id">
+    <RouterLink to="/">
+    <img :src="item.picture" />
+    <p class="name ellipsis">{{ item.name }}</p>
+    <p class="price">&yen;{{ item.price }}</p>
+    </RouterLink>
+</li>
 ```
 
-
+**总结：** vue3.0中 只支持v-slot指令，所以需要配合template来使用。
 
 
 
@@ -2449,13 +2766,13 @@ export default {
 ```
 
 ```vue
-        <li v-for="item in list" :key="item.id">
-          <RouterLink to="/">
-            <img :src="item.picture" />
-            <p class="name ellipsis">{{ item.title }}</p>
-            <p class="desc">{{ item.alt }}</p>
-          </RouterLink>
-        </li>
+<li v-for="item in list" :key="item.id">
+    <RouterLink to="/">
+    <img :src="item.picture" />
+    <p class="name ellipsis">{{ item.title }}</p>
+    <p class="desc">{{ item.alt }}</p>
+    </RouterLink>
+</li>
 ```
 
 
@@ -2468,7 +2785,8 @@ export default {
 
 在vue中，显示隐藏，创建移除，一个元素或者一个组件的时候，可以通过transition实现动画。
 
-![image-20220320183625162](./images/image-20220320183625162.png)
+![image-20220320183625162](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1616576876892.c417f529.png)
+
 
 6个状态对应6个类名：
 
@@ -2513,7 +2831,6 @@ export default {
      opcaity: 0
  }
  ```
-
 
 
 
@@ -2631,8 +2948,9 @@ UI组件库代码：`erabbit-ui/packages/theme/index.less` 不用写，组件库
 }
 ```
 
+注意：
 
-
+- 动画的父容器需要是定位，防止定位跑偏。
 
 
 ## 首页-数据懒加载
@@ -2660,13 +2978,14 @@ export default {
     const target = ref(null)
     const targetIsVisible = ref(false)
 
-    // stop 停止观察函数
+    // stop 是停止观察是否进入或移出可视区域的行为  
     const { stop } = useIntersectionObserver(
-      // 需要观察的元素，通过ref获取的DOM元素或组件
+      // target 是观察的目标dom容器，必须是dom容器，而且是vue3.0方式绑定的dom对象
       target,
-      // isIntersecting 是否进入可视区 observerElement 被观察的元素
+      // isIntersecting 是否进入可视区域，true是进入 false是移出
+      // observerElement 被观察的dom
       ([{ isIntersecting }], observerElement) => {
-        targetIsVisible.value = isIntersecting
+        // 在此处可根据isIntersecting来判断，然后做业务
       },
     )
 
@@ -2785,7 +3104,7 @@ export default {
 
 
 
-## 首页-热门品牌（作业）
+## 首页-热门品牌
 
 > 目标：使用懒加载函数和骨架完成热门品牌功能
 
@@ -2901,11 +3220,11 @@ export default {
 ```
 
 ```vue
-          <li v-for="item in list" :key="item.id">
-            <RouterLink to="/">
-              <img :src="item.picture" alt="" />
-            </RouterLink>
-          </li>
+<li v-for="item in list" :key="item.id">
+<RouterLink to="/">
+    <img :src="item.picture" alt="" />
+</RouterLink>
+</li>
 ```
 
 - 利用骨架组件完成加载效果
@@ -2947,51 +3266,775 @@ export default {
 
 
 
-- 完成列表滑动效果
+- 获取数据和切换效果：
+    - 由于最后会使用到数据懒加载，那么我们也会使用组合API实现。
+    - 业务上，只有两页数据切换，0--->1 或者 1--->0 的方式。
 
-```diff
-+import { ref } from "vue";
+``vue
+<template>
+  <HomePanel title="热门品牌" sub-title="国际经典 品质保证">
+    <template v-slot:right>
+      <a @click="toggle(-1)" :class="{disabled:index===0}" href="javascript:;" class="iconfont icon-angle-left prev"></a>
+      <a @click="toggle(1)" :class="{disabled:index===1}" href="javascript:;" class="iconfont icon-angle-right next"></a>
+    </template>
+    <div class="box">
+        <ul v-if="brands.length" class="list" :style="{transform:`translateX(${-index*1240}px)`}">
+          <li v-for="item in brands" :key="item.id">
+            <RouterLink to="/">
+              <img :src="item.picture" alt="">
+            </RouterLink>
+          </li>
+        </ul>
+    </div>
+  </HomePanel>
+</template>
+
+<script>
+import { ref } from 'vue'
+import HomePanel from './home-panel'
+import { findBrand } from '@/api/home'
+import { useLazyData } from '@/hooks'
 export default {
-  name: "HomeBrand",
+  name: 'HomeBrand',
   components: { HomePanel },
-  setup() {
-+    // 切换
-+    const translateX = ref(0);
-+    const toggle = (x) => {
-+      translateX.value = x;
-+    };
-    // 数据
-    const { target, list } = useLazyData(() => getBrand(10));
-+    return { target, list, translateX, toggle };
-  },
-};
+  setup () {
+    // 获取数据
+     const brands = ref([])
+     findBrand(10).then(data => {
+       brands.value = data.result
+     })
+
+    // 切换效果，前提只有 0 1 两页
+    const index = ref(0)
+    // 1. 点击上一页
+    // 2. 点击下一页
+    const toggle = (step) => {
+      const newIndex = index.value + step
+      if (newIndex < 0 || newIndex > 1) return
+      index.value = newIndex
+    }
+    return { brands, toggle, index }
+  }
+}
+</script>
 ```
+
+- 加上数据懒加载和骨架效果
 
 ```vue
-      <a
-        @click="toggle(0)"
-        href="javascript:;"
-        class="iconfont icon-angle-left prev"
-        :class="{ disabled: translateX === 0 }"
-      ></a>
-      <a
-        @click="toggle(-1240)"
-        href="javascript:;"
-        class="iconfont icon-angle-right next"
-        :class="{ disabled: translateX === -1240 }"
-      ></a>
+<template>
+  <HomePanel title="热门品牌" sub-title="国际经典 品质保证">
+    <template v-slot:right>
+      <a @click="toggle(-1)" :class="{disabled:index===0}" href="javascript:;" class="iconfont icon-angle-left prev"></a>
+      <a @click="toggle(1)" :class="{disabled:index===1}" href="javascript:;" class="iconfont icon-angle-right next"></a>
+    </template>
++    <div ref="target" class="box">
++      <Transition name="fade">
++        <ul v-if="brands.length" class="list" :style="{transform:`translateX(${-index*1240}px)`}">
+          <li v-for="item in brands" :key="item.id">
+            <RouterLink to="/">
+              <img :src="item.picture" alt="">
+            </RouterLink>
+          </li>
+        </ul>
++        <div v-else class="skeleton">
++          <XtxSkeleton class="item" v-for="i in 5" :key="i" animated bg="#e4e4e4" width="240px" height="305px"/>
++        </div>
++      </Transition>
+    </div>
+  </HomePanel>
+</template>
+
+<script>
+import { ref } from 'vue'
+import HomePanel from './home-panel'
+import { findBrand } from '@/api/home'
++import { useLazyData } from '@/hooks'
+export default {
+  name: 'HomeBrand',
+  components: { HomePanel },
+  setup () {
+    // 获取数据
+    // const brands = ref([])
+    // findBrand(10).then(data => {
+    //   brands.value = data.result
+    // })
++    // 注意：useLazyData需要的是API函数，如果遇到要传参的情况，自己写函数再函数中调用API
++    const { target, result } = useLazyData(() => findBrand(10))
+
+    // 切换效果，前提只有 0 1 两页
+    const index = ref(0)
+    // 1. 点击上一页
+    // 2. 点击下一页
+    const toggle = (step) => {
+      const newIndex = index.value + step
+      if (newIndex < 0 || newIndex > 1) return
+      index.value = newIndex
+    }
++    return { brands: result, toggle, index, target }
+  }
+}
+</script>
 ```
 
-```vue
-        <ul
-          class="list"
-          v-if="list.length"
-          :style="{ transform: `translateX(${translateX}px)` }"
-        >
+```less
+.skeleton {
+    width: 100%;
+    display: flex;
+    .item {
+        margin-right: 10px;
+        &:nth-child(5n) {
+        margin-right: 0;
+        }
+    }
+}
 ```
-
 
 
 **总结：**
 
-- 综合 数据懒加上 骨架效果 完成该功能
+- 综合 数据懒加载 骨架效果 完成该功能
+- 注意useLazyData传参的情况。
+
+
+## 首页-商品区块
+> 目的： 完成商品区域展示。
+
+大致步骤：
+
+- 准备一个商品盒子组件 home-goods 展示单个商品
+- 定义产品区块组件 home-product 使用 home-goods 完成基础布局
+- 在首页中使用 home-product 组件
+- 定义API函数，获取数据，进行渲染
+- 处理板块需要进入可视区太多内容才能加载数据问题。
+
+落地代码：
+
+- 单个商品组件：`src/views/home/components/home-goods.vue`
+```vue
+<template>
+  <div class="goods-item">
+    <RouterLink to="/" class="image">
+      <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/fresh_goods_1.jpg" alt="" />
+    </RouterLink>
+    <p class="name ellipsis-2">美威 智利原味三文鱼排 240g/袋 4片装</p>
+    <p class="desc">海鲜年货</p>
+    <p class="price">&yen;108.00</p>
+    <div class="extra">
+      <RouterLink to="/">
+        <span>找相似</span>
+        <span>发现现多宝贝 &gt;</span>
+      </RouterLink>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'HomeGoods'
+}
+</script>
+
+<style scoped lang='less'>
+.goods-item {
+  width: 240px;
+  height: 300px;
+  padding: 10px 30px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all .5s;
+  .image {
+    display: block;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+    img {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  p {
+    margin-top: 6px;
+    font-size: 16px;
+    &.name {
+      height: 44px;
+    }
+    &.desc {
+      color: #666;
+      height: 22px;
+    }
+    &.price {
+      margin-top: 10px;
+      font-size: 20px;
+      color: @priceColor;
+    }
+  }
+  .extra {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 86px;
+    width: 100%;
+    background: @xtxColor;
+    text-align: center;
+    transform: translate3d(0,100%,0);
+    transition: all .5s;
+    span {
+      display: block;
+      color: #fff;
+      width: 120px;
+      margin: 0 auto;
+      line-height: 30px;
+      &:first-child {
+        font-size: 18px;
+        border-bottom:1px solid #fff;
+        line-height: 40px;
+        margin-top: 5px;
+      }
+    }
+  }
+  &:hover {
+    border-color: @xtxColor;
+    .extra {
+      transform: none;
+    }
+  }
+}
+</style>
+```
+
+- 产品区块组件：`src/views/home/components/home-product.vue`
+```vue
+<template>
+  <div class="home-product">
+    <HomePanel title="生鲜" v-for="i in 4" :key="i">
+      <template v-slot:right>
+        <div class="sub">
+          <RouterLink to="/">海鲜</RouterLink>
+          <RouterLink to="/">水果</RouterLink>
+          <RouterLink to="/">蔬菜</RouterLink>
+          <RouterLink to="/">水产</RouterLink>
+          <RouterLink to="/">禽肉</RouterLink>
+        </div>
+        <XtxMore />
+      </template>
+      <div class="box">
+        <RouterLink class="cover" to="/">
+          <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/fresh_goods_cover.jpg" alt="">
+          <strong class="label">
+            <span>生鲜馆</span>
+            <span>全场3件7折</span>
+          </strong>
+        </RouterLink>
+        <ul class="goods-list">
+          <li v-for="i in 8" :key="i">
+            <HomeGoods />
+          </li>
+        </ul>
+      </div>
+    </HomePanel>
+  </div>
+</template>
+
+<script>
+import HomePanel from './home-panel'
+import HomeGoods from './home-goods'
+export default {
+  name: 'HomeProduct',
+  components: { HomePanel, HomeGoods }
+}
+</script>
+
+<style scoped lang='less'>
+.home-product {
+  background: #fff;
+  height: 2900px;
+  .sub {
+    margin-bottom: 2px;
+    a {
+      padding: 2px 12px;
+      font-size: 16px;
+      border-radius: 4px;
+      &:hover {
+        background: @xtxColor;
+        color: #fff;
+      }
+      &:last-child {
+        margin-right: 80px;
+      }
+    }
+  }
+  .box {
+    display: flex;
+    .cover {
+      width: 240px;
+      height: 610px;
+      margin-right: 10px;
+      position: relative;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+      .label {
+        width: 188px;
+        height: 66px;
+        display: flex;
+        font-size: 18px;
+        color: #fff;
+        line-height: 66px;
+        font-weight: normal;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translate3d(0,-50%,0);
+        span {
+          text-align: center;
+          &:first-child {
+            width: 76px;
+            background: rgba(0,0,0,.9);
+          }
+          &:last-child {
+            flex: 1;
+            background: rgba(0,0,0,.7);
+          }
+        }
+      }
+    }
+    .goods-list {
+      width: 990px;
+      display: flex;
+      flex-wrap: wrap;
+      li {
+        width: 240px;
+        height: 300px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        &:nth-last-child(-n+4) {
+          margin-bottom: 0;
+        }
+        &:nth-child(4n) {
+          margin-right: 0;
+        }
+      }
+    }
+  }
+}
+</style>
+```
+
+- 使用组件：`src/views/home/index.vue`
+```diff
+    <!-- 人气推荐 -->
+    <HomeHot />
+    <!-- 热门品牌 -->
+    <HomeBrand />
+    <!-- 商品区域 -->
++    <HomeProduct />
+```
+
+```diff
++import HomeProduct from './components/home-product'
+export default {
+  name: 'xtx-home-page',
++  components: { HomeCategory, HomeBanner, HomeNew, HomeHot, HomeBrand, HomeProduct }
+}
+```
+
+- 获取数据渲染：
+    - 定义API `src/api/home.js`
+    ```js
+    export const findGoods = () => {
+        return request('home/goods', 'get')
+    }
+    ```
+    - 进行渲染 `src/views/home/components/home-product.vue`
+    ```diff
+    <template>
+        <div class="home-product" ref="target">
+        +    <HomePanel :title="cate.name" v-for="cate in list" :key="cate.id">
+            <template v-slot:right>
+                <div class="sub">
+        +          <RouterLink v-for="sub in cate.children" :key="sub.id" to="/">{{sub.name}}</RouterLink>
+                </div>
+                <XtxMore />
+            </template>
+            <div class="box">
+                <RouterLink class="cover" to="/">
+        +          <img :src="cate.picture" alt="">
+                <strong class="label">
+        +            <span>{{cate.name}}馆</span>
+        +            <span>{{cate.saleInfo}}</span>
+                </strong>
+                </RouterLink>
+                <ul class="goods-list">
+        +          <li v-for="item in cate.goods" :key="item.id">
+        +            <HomeGoods :goods="item" />
+                </li>
+                </ul>
+            </div>
+            </HomePanel>
+        </div>
+    </template>
+
+    <script>
+    import HomePanel from './home-panel'
+    import HomeGoods from './home-goods'
+    +import { findGoods } from '@/api/home'
+    +import { useLazyData } from '@/hooks'
+    export default {
+    name: 'HomeProduct',
+    components: { HomePanel, HomeGoods },
+    +  setup () {
+    +    const { target, result } = useLazyData(findGoods)
+    +    return { target, list: result }
+    +  }
+    }
+    </script>
+    ```
+
+    - `src/views/home/components/home-goods.vue`
+    ```diff
+    <template>
+    <div class="goods-item">
+        <RouterLink to="/" class="image">
+    +      <img :src="goods.picture" alt="" />
+        </RouterLink>
+    +    <p class="name ellipsis-2">{{goods.name}}</p>
+    +    <p class="desc">{{goods.tag}}</p>
+    +    <p class="price">&yen;{{goods.price}}</p>
+        <div class="extra">
+        <RouterLink to="/">
+            <span>找相似</span>
+            <span>发现现多宝贝 &gt;</span>
+        </RouterLink>
+        </div>
+    </div>
+    </template>
+
+    <script>
+    export default {
+    name: 'HomeGoods',
+    +  props: {
+    +    goods: {
+    +      type: Object,
+    +      default: () => {}
+    +    }
+    +  }
+    }
+    </script>
+    ```
+
+    - 处理问题：
+        - 产品区域需要滚动比较多才能去加载数据。
+        ```diff
+          const { stop } = useIntersectionObserver(
+            container,
+            ([{ isIntersecting }], dom) => {
+            if (isIntersecting) {
+                stop()
+                apiFn && apiFn().then(({ result }) => {
+                data.value = result
+                })
+            }
+        +    }, {
+        +      threshold: 0
+        +    }
+        )  
+        ```
+        - threshold 容器和可视区交叉的占比（进入的面积/容器完整面试） 取值，0-1 之间，默认比0大，所以需要滚动较多才能触发进入可视区域事件。
+
+
+## 首页-最新专题
+
+> 目的： 完成最新专题展示。
+
+基础布局：`src/views/home/components/home-special.vue`
+
+```vue
+<template>
+  <HomePanel title="最新专题">
+    <template v-slot:right><XtxMore /></template>
+    <div class="special-list" ref="homeSpecial">
+      <div class="special-item" v-for="i in 3" :key="i">
+        <RouterLink to="/">
+          <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/topic_goods_1.jpg" alt />
+          <div class="meta">
+            <p class="title">
+              <span class="top ellipsis">看到撒娇的撒娇的凯撒就</span>
+              <span class="sub ellipsis">倒萨倒萨倒萨</span>
+            </p>
+            <span class="price">&yen;19.99起</span>
+          </div>
+        </RouterLink>
+        <div class="foot">
+          <span class="like"><i class="iconfont icon-hart1"></i>100</span>
+          <span class="view"><i class="iconfont icon-see"></i>100</span>
+          <span class="reply"><i class="iconfont icon-message"></i>100</span>
+        </div>
+      </div>
+    </div>
+  </HomePanel>
+</template>
+
+<script>
+import HomePanel from './home-panel'
+export default {
+  name: 'HomeSpecial',
+  components: { HomePanel }
+}
+</script>
+
+<style scoped lang='less'>
+.home-panel {
+  background: #f5f5f5;
+}
+.special-list {
+  height: 380px;
+  padding-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  .special-item {
+    width: 404px;
+    background: #fff;
+    .hoverShadow();
+    a {
+      display: block;
+      width: 100%;
+      height: 288px;
+      position: relative;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+      .meta {
+        background-image: linear-gradient(to top,rgba(0, 0, 0, 0.8),transparent 50%);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 288px;
+        .title {
+          position: absolute;
+          bottom: 0px;
+          left: 0;
+          padding-left: 16px;
+          width: 70%;
+          height: 70px;
+          .top {
+            color: #fff;
+            font-size: 22px;
+            display: block;
+          }
+          .sub {
+            display: block;
+            font-size: 19px;
+            color: #999;
+          }
+        }
+        .price {
+          position: absolute;
+          bottom: 25px;
+          right: 16px;
+          line-height: 1;
+          padding: 4px 8px 4px 7px;
+          color: @priceColor;
+          font-size: 17px;
+          background-color: #fff;
+          border-radius: 2px;
+        }
+      }
+    }
+    .foot {
+      height: 72px;
+      line-height: 72px;
+      padding: 0 20px;
+      font-size: 16px;
+
+      i {
+        display: inline-block;
+        width: 15px;
+        height: 14px;
+        margin-right: 5px;
+        color: #999;
+      }
+      .like,
+      .view {
+        float: left;
+        margin-right: 25px;
+        vertical-align: middle;
+      }
+      .reply {
+        float: right;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+</style>
+```
+
+- 使用组件：src/views/home/index.vue
+
+```diff
+    <!-- 商品区域 -->
+    <HomeProduct />
+    <!-- 最新专题 -->
++    <HomeSpecial />
+```
+```diff
++import HomeSpecial from './components/home-special'
+export default {
+  name: 'xtx-home-page',
++  components: { HomeCategory, HomeBanner, HomeNew, HomeHot, HomeBrand, HomeProduct, HomeSpecial }
+}
+```
+- 获取数据：
+
+- 定义`API src/api/home.js`
+```js
+export const findSpecial = () => {
+  return request('home/special', 'get')
+}
+```
+
+渲染组件 `src/views/home/components/home-speical.vue`
+
+```diff
+<template>
+  <HomePanel title="最新专题">
+    <template v-slot:right><XtxMore /></template>
+    <div class="special-list" ref="homeSpecial">
++      <div class="special-item" v-for="item in list" :key="item.id">
+        <RouterLink to="/">
++          <img :src="item.cover" alt />
+          <div class="meta">
++            <p class="title">{{item.title}}<small>{{item.summary}}</small></p>
++            <span class="price">&yen;{{item.lowestPrice}}起</span>
+          </div>
+        </RouterLink>
+        <div class="foot">
++          <span class="like"><i class="iconfont icon-hart1"></i>{{item.collectNum}}</span>
++          <span class="view"><i class="iconfont icon-see"></i>{{item.viewNum}}</span>
++          <span class="reply"><i class="iconfont icon-message"></i>{{item.replyNum}}</span>
+        </div>
+      </div>
+    </div>
+  </HomePanel>
+</template>
+
+<script>
+import HomePanel from './home-panel'
++import { findSpecial } from '@/api/home'
++import { useLazyData } from '@/hooks'
+export default {
+  name: 'HomeSpecial',
+  components: { HomePanel },
++  setup () {
++    const { container, data } = useLazyData(findSpecial)
++    return { homeSpecial: container, list: data }
++  }
+}
+</script>
+```
+
+## 首页-图片懒加载
+
+> 目的： 当图片进入可视区域内去加载图片，且处理加载失败，封装成指令。
+
+介绍一个webAPI：IntersectionObserver(https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver/IntersectionObserver)
+
+```js
+// 创建观察对象实例
+const observer = new IntersectionObserver(callback[, options])
+// callback 被观察dom进入可视区离开可视区都会触发
+// - 两个回调参数 entries , observer
+// - entries 被观察的元素信息对象的数组 [{元素信息},{}]，信息中isIntersecting判断进入或离开
+// - observer 就是观察实例
+// options 配置参数
+// - 三个配置属性 root rootMargin threshold
+// - root 基于的滚动容器，默认是document
+// - rootMargin 容器有没有外边距
+// - threshold 交叉的比例
+
+// 实例提供两个方法
+// observe(dom) 观察哪个dom
+// unobserve(dom) 停止观察那个dom
+```
+
+基于vue3.0和IntersectionObserver封装懒加载指令
+
+`src/components/library/index.js`
+
+```diff
+export default {
+  install (app) {
+    app.component(XtxSkeleton.name, XtxSkeleton)
+    app.component(XtxCarousel.name, XtxCarousel)
+    app.component(XtxMore.name, XtxMore)
++    defineDirective(app)
+  }
+}
+```
+
+```js
+import defaultImg from '@/assets/images/200.png'
+// 指令
+const defineDirective = (app) => {
+  // 图片懒加载指令
+  app.directive('lazyload', {
+    mounted (el, binding) {
+      const observer = new IntersectionObserver(([{ isIntersecting }]) => {
+        if (isIntersecting) {
+          observer.unobserve(el)
+          el.onerror = () => {
+              el.src = defaultImg
+          }  
+          el.src = binding.value
+        }
+      }, {
+        threshold: 0.01
+      })
+      observer.observe(el)
+    }
+  })
+}
+```
+
+使用指令：
+
+`src/views/home/component/home-product.vue`
+
+```diff
+        <RouterLink class="cover" to="/">
++          <img alt="" v-lazyload="cate.picture">
+          <strong class="label">
+            <span>{{cate.name}}馆</span>
+            <span>{{cate.saleInfo}}</span>
+          </strong>
+        </RouterLink>
+```
+
+`src/views/home/component/home-goods.vue`
+
+```diff
+    <RouterLink to="/" class="image">
++      <img alt="" v-lazyload="goods.picture" />
+    </RouterLink>
+```
+
+`src/views/home/component/home-product.vue`
+
+```diff
+        <RouterLink class="cover" to="/">
++          <img v-lazyload="item.picture" alt="">
+          <strong class="label">
+            <span>{{item.name}}馆</span>
+            <span>{{item.saleInfo}}</span>
+          </strong>
+        </RouterLink>
+```
+
+**总结：**
+
+- 在img上使用使用v-lazyload值为图片地址，不设置src属性。

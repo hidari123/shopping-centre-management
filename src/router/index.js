@@ -1,3 +1,13 @@
+/*
+ * @Author: hidari
+ * @Date: 2022-04-13 17:36:23
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-19 16:39:24
+ * @FilePath: \shopping-centre-management\src\router\index.js
+ * @Description:
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+ */
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { Layout } from './route/layout.route'
 
@@ -10,7 +20,12 @@ const routes = [
 const router = createRouter({
   // hash路由模式
   history: createWebHashHistory(),
-  routes
+  routes,
+  scrollBehavior () {
+    // vue2.0 => x,y
+    // vue3.0 => left,top
+    return { left: 0, top: 0 }
+  }
 })
 
 export default router

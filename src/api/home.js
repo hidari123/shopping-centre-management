@@ -1,8 +1,8 @@
 /*
  * @Author: OBKoro1
  * @Date: 2022-04-15 16:01:32
- * @LastEditors: OBKoro1
- * @LastEditTime: 2022-04-18 16:37:03
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-19 15:27:57
  * @FilePath: \shopping-centre-management\src\api\home.js
  * @Description:
  *
@@ -47,3 +47,9 @@ export const reqFindGoods = () => request('home/goods', 'get')
  * @returns Promise
  */
 export const reqFindSpecial = () => request('home/special', 'get')
+
+/**
+ * 获取单个顶级分类信息
+ * @param {String} id - 顶级分类ID
+ */
+export const reqFindTopCategory = (id) => request('/category', 'get', { id })

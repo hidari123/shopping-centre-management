@@ -1,7 +1,7 @@
 <template>
   <ul class="app-header-nav">
     <li class="home"><RouterLink to="/">首页</RouterLink></li>
-    <li v-for="item in list" :key="item.id" @mouseenter="show(item.id)" @mouseleave="hide(item.id)">
+    <li v-for="item in list" :key="item.id" @mousemove="show(item.id)" @mouseleave="hide(item.id)">
       <router-link :to="`/category/${item.id}`"  @click="hide(item.id)">{{item.name}}</router-link>
       <div class="layer" :class="{open: item.open}">
         <ul>
@@ -16,7 +16,6 @@
     </li>
   </ul>
 </template>
-
 <script>
 import { computed } from 'vue'
 import { useStore } from 'vuex'
