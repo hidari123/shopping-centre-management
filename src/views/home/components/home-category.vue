@@ -66,12 +66,10 @@ export default {
     const menuList = computed(() => {
       // 得到9各分类，且每个一级分类下的子分类有两个
       const list = store.state.category.list.map(item => {
-        return {
-          id: item.id,
-          name: item.name,
-          children: item.children && item.children.slice(0, 2),
-          goods: item.goods
-        }
+        // 保留子分类的前两项
+        // 解构
+        const { id, name, children, goods } = item
+        return { id, name, children: children && children.slice(0, 2), goods }
       })
       list.push(brand)
       return list

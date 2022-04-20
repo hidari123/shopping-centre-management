@@ -1771,6 +1771,7 @@ export default {
     const categoryList = computed(() => {
       const list = store.state.category.list.map((item) => {
         // 保留子分类的前两项
+        // 解构
         const { id, name, children, goods } = item;
         return { id, name, children: children && children.slice(0, 2), goods };
       });
