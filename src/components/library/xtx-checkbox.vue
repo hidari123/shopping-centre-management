@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-20 09:48:54
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-20 10:00:21
+ * @LastEditTime: 2022-04-20 13:06:46
  * @FilePath: \shopping-centre-management\src\components\library\xtx-checkbox.vue
  * @Description:
  *
@@ -18,8 +18,7 @@
   </div>
 </template>
 <script>
-import { ref } from '@vue/reactivity'
-import { watch } from '@vue/runtime-core'
+import { useVModel } from '@vueuse/core'
 /**
  * v-model => :modelValue + @update:modelValue
  */
@@ -32,18 +31,19 @@ export default {
     }
   },
   setup (props, { emit }) {
-    const checked = ref(false)
+    // 使用useVModel实现双向数据绑定v-model指令
+    // 1. 使用props接收modelValue
+    // 2. 使用useVModel来包装props中的modelValue属性数据
+    // 3. 在使用checked.value就是使用父组件数据
+    // 4. 在使用checked.value = '数据' 赋值，触发emit('update:modelvalue', '数据')
+    const checked = useVModel(props, 'modelValue', emit)
     const changeChecked = () => {
-      checked.value = !checked.value
-      // 使用 emit 通知父组件状态改变
-      emit('update:modelValue', checked.value)
+      const newVal = !checked.value
+      // 通知父组件
+      checked.value = newVal
+      // 让组件支持 change 事件
+      emit('change', newVal)
     }
-    // 使用侦听器 得到父组件传递数据 给 checked 传递数据
-    watch(() => props.modelValue, () => {
-      checked.value = props.modelValue
-    }, {
-      immediate: true
-    })
     return {
       checked,
       changeChecked

@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-19 17:54:48
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-20 09:42:12
+ * @LastEditTime: 2022-04-20 17:55:33
  * @FilePath: \shopping-centre-management\src\views\category\components\sub-filter.vue
  * @Description:
  *
@@ -14,13 +14,13 @@
      <div class="item">
        <div class="head">品牌：</div>
        <div class="body">
-         <a @click="filterData.brands.selectedBrand = item.id" :class="{active: item.id === filterData.brands.selectedBrand}" href="javascript:;" v-for="item in filterData.brands" :key="item.id">{{item.name}}</a>
+         <a @click="changeBrand(item.id)" :class="{active: item.id === filterData.brands.selectedBrand}" href="javascript:;" v-for="item in filterData.brands" :key="item.id">{{item.name}}</a>
        </div>
      </div>
       <div class="item" v-for="item in filterData.saleProperties" :key="item.id">
        <div class="head">{{item.name}}</div>
        <div class="body">
-         <a href="javascript:;" @click="item.selectedAttr = attr.id" :class="{active: attr.id === item.selectedAttr}" v-for="attr in item.properties" :key="attr.id">{{attr.name}}</a>
+         <a href="javascript:;" @click="changeAttr(item, attr.id)" :class="{active: attr.id === item.selectedAttr}" v-for="attr in item.properties" :key="attr.id">{{attr.name}}</a>
        </div>
      </div>
    </div>
@@ -39,7 +39,7 @@ import { useRoute } from 'vue-router'
 import { reqFindSubCategoryFilter } from '@/api/category.js'
 export default {
   name: 'SubFilter',
-  setup () {
+  setup (props, { emit }) {
     const route = useRoute()
     const filterLoding = ref(false)
     // 监听二级类目ID的变化获取筛选数据
@@ -68,9 +68,43 @@ export default {
     }, {
       immediate: true
     })
+
+    // 获取筛选参数的函数
+    const getFilterParams = () => {
+      // 参考数据
+      // {brandId: '', attrs: [{groupName: '', propertyName: ''}, {}]}
+      const filterParams = { brandId: null, attrs: [] }
+      // 品牌
+      filterParams.brandId = filterData.value.brands.selectedBrand
+      // 销售属性
+      filterData.value.saleProperties.forEach(item => {
+        if (item.selectedAttr) {
+          const attr = item.properties.find(attr => attr.id === item.selectedAttr)
+          filterParams.attrs.push({ groupName: item.name, propertyName: attr.name })
+        }
+      })
+      if (filterParams.attrs.length === 0) filterParams.attrs = null
+      return filterParams
+    }
+
+    // 记录当前选择的品牌
+    const changeBrand = (brandId) => {
+      if (filterData.value.brands.selectedBrand === brandId) return
+      filterData.value.brands.selectedBrand = brandId
+      emit('filter-change', getFilterParams())
+    }
+
+    // 记录选择的销售属性
+    const changeAttr = (item, attrId) => {
+      if (item.selectedAttr === attrId) return
+      item.selectedAttr = attrId
+      emit('filter-change', getFilterParams())
+    }
     return {
       filterData,
-      filterLoding
+      filterLoding,
+      changeBrand,
+      changeAttr
     }
   }
 }

@@ -8,16 +8,15 @@
   - [分类-激活头部导航](#%E5%88%86%E7%B1%BB-%E6%BF%80%E6%B4%BB%E5%A4%B4%E9%83%A8%E5%AF%BC%E8%88%AA)
   - [基础布局搭建](#%E5%9F%BA%E7%A1%80%E5%B8%83%E5%B1%80%E6%90%AD%E5%BB%BA)
   - [分类商品-布局](#%E5%88%86%E7%B1%BB%E5%95%86%E5%93%81-%E5%B8%83%E5%B1%80)
+  - [切换分类时更新数据](#%E5%88%87%E6%8D%A2%E5%88%86%E7%B1%BB%E6%97%B6%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE)
   - [分类商品-展示](#%E5%88%86%E7%B1%BB%E5%95%86%E5%93%81-%E5%B1%95%E7%A4%BA)
+    - [watch 方案](#watch-%E6%96%B9%E6%A1%88)
+    - [onBeforeRouteUpdate 方案](#onbeforerouteupdate-%E6%96%B9%E6%A1%88)
   - [面包屑切换动画](#%E9%9D%A2%E5%8C%85%E5%B1%91%E5%88%87%E6%8D%A2%E5%8A%A8%E7%94%BB)
   - [处理跳转细节](#%E5%A4%84%E7%90%86%E8%B7%B3%E8%BD%AC%E7%BB%86%E8%8A%82)
   - [展示面包屑](#%E5%B1%95%E7%A4%BA%E9%9D%A2%E5%8C%85%E5%B1%91)
   - [筛选区展示](#%E7%AD%9B%E9%80%89%E5%8C%BA%E5%B1%95%E7%A4%BA)
   - [复选框组件封装](#%E5%A4%8D%E9%80%89%E6%A1%86%E7%BB%84%E4%BB%B6%E5%B0%81%E8%A3%85)
-    - [03-分类-切换分类时更新数据](#03-%E5%88%86%E7%B1%BB-%E5%88%87%E6%8D%A2%E5%88%86%E7%B1%BB%E6%97%B6%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE)
-    - [04-分类-渲染面包屑](#04-%E5%88%86%E7%B1%BB-%E6%B8%B2%E6%9F%93%E9%9D%A2%E5%8C%85%E5%B1%91)
-    - [05-分类-商品分类布局](#05-%E5%88%86%E7%B1%BB-%E5%95%86%E5%93%81%E5%88%86%E7%B1%BB%E5%B8%83%E5%B1%80)
-    - [06-分类-商品分类渲染](#06-%E5%88%86%E7%B1%BB-%E5%95%86%E5%93%81%E5%88%86%E7%B1%BB%E6%B8%B2%E6%9F%93)
   - [搜索模块](#%E6%90%9C%E7%B4%A2%E6%A8%A1%E5%9D%97)
     - [07-搜索-头部搜索跳转](#07-%E6%90%9C%E7%B4%A2-%E5%A4%B4%E9%83%A8%E6%90%9C%E7%B4%A2%E8%B7%B3%E8%BD%AC)
     - [08-搜索-路由与组件结构](#08-%E6%90%9C%E7%B4%A2-%E8%B7%AF%E7%94%B1%E4%B8%8E%E7%BB%84%E4%BB%B6%E7%BB%93%E6%9E%84)
@@ -1302,7 +1301,39 @@ export default {
 }
 ```
 
+- 补充 `@vueuse/core` 的实现
 
+```js
+import { useVModel } from '@vueuse/core'
+// v-model  ====>  :modelValue  +   @update:modelValue
+export default {
+  name: 'XtxCheckbox',
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false
+    }
+  },
+  setup (props, { emit }) {
+    // 使用useVModel实现双向数据绑定v-model指令
+    // 1. 使用props接收modelValue
+    // 2. 使用useVModel来包装props中的modelValue属性数据
+    // 3. 在使用checked.value就是使用父组件数据
+    // 4. 在使用checked.value = '数据' 赋值，触发emit('update:modelvalue', '数据')
+    const checked = useVModel(props, 'modelValue', emit)
+    const changeChecked = () => {
+      const newVal = !checked.value
+      // 通知父组件
+      checked.value = newVal
+      // 让组件支持change事件
+      emit('change', newVal)
+    }
+    return { checked, changeChecked }
+  }
+}
+```
+
+**总结：** useVModel 工具函数可实现双向绑定。
 
 ## 搜索模块
 

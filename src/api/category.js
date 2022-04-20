@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-15 09:09:07
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-20 08:55:05
+ * @LastEditTime: 2022-04-20 16:01:59
  * @FilePath: \shopping-centre-management\src\api\category.js
  * @Description:
  *
@@ -21,3 +21,9 @@ export const reqFindAllCategory = () => request('/home/category/head', 'get')
  * @param {String} id - 二级分类ID
  */
 export const reqFindSubCategoryFilter = (id) => request('/category/sub/filter', 'get', { id })
+
+/**
+ * 获取分类下的商品（带筛选条件）
+ * @param {Object} params - 可参考接口文档
+ */
+export const reqFindSubCategoryGoods = (params) => request('/category/goods/temporary', 'post', params)
