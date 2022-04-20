@@ -2,14 +2,16 @@
   <ul class="app-header-nav">
     <li class="home"><RouterLink to="/">首页</RouterLink></li>
     <li v-for="item in list" :key="item.id" @mousemove="show(item.id)" @mouseleave="hide(item.id)">
-      <router-link :to="`/category/${item.id}`"  @click="hide(item.id)">{{item.name}}</router-link>
+      <router-link :to="`/category/${item.id}`"  @click="hide(item.id)" active-class="active" exact>{{item.name}}</router-link>
       <div class="layer" :class="{open: item.open}">
         <ul>
           <li v-for="sub in item.children" :key="sub.id">
-            <router-link :to="`/category/sub/${sub.id}`" @click="hide(item.id)">
+            <router-link :to="`/category/sub/${sub.id}`" @click="hide(item.id)" v-if="item.id">
               <img :src="sub.picture" alt="">
               <p>{{sub.name}}</p>
             </router-link>
+            <!-- 在没有加载数据的时候可以看到分类，没有加载完数据不让点击 -->
+            <a v-else href="javascript:;">{{ item.name }}</a>
           </li>
         </ul>
       </div>
@@ -19,6 +21,15 @@
 <script>
 import { computed } from 'vue'
 import { useStore } from 'vuex'
+// 1. 渲染nav中的一级分类
+// 1.1 在API层，定义接口函数
+// 1.2 在vuex的category模块，定义mutations函数和actions函数
+// 1.3 Layout组件调用
+// 1.4 当前组件拿出vuex中数据，进行渲染即可
+// 2. 优化初始化无数据展示（局部白屏）
+// 2.1 定义9个分类的常量数据
+// 2.2 在vuex状态初始化的时候，使用常量数据（和后台数据结构一致）
+// 2.3 在没有加载数据的时候可以看到分类，没有加载完数据不让点击
 export default {
   name: 'AppHeaderNav',
   setup () {
@@ -63,6 +74,11 @@ export default {
       line-height: 32px;
       height: 32px;
       display: inline-block;
+      // 当a链接上有active的时候会有激活样式
+      &.active {
+          color: @xtxColor;
+          border-bottom: 1px solid @xtxColor;
+      }
     }
     &:hover {
         > a{

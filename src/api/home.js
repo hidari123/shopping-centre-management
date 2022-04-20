@@ -2,7 +2,7 @@
  * @Author: OBKoro1
  * @Date: 2022-04-15 16:01:32
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-19 15:27:57
+ * @LastEditTime: 2022-04-20 08:56:58
  * @FilePath: \shopping-centre-management\src\api\home.js
  * @Description:
  *

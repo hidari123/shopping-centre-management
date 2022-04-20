@@ -4,7 +4,16 @@
 
 - [分类模块](#%E5%88%86%E7%B1%BB%E6%A8%A1%E5%9D%97)
   - [分类-面包屑组件](#%E5%88%86%E7%B1%BB-%E9%9D%A2%E5%8C%85%E5%B1%91%E7%BB%84%E4%BB%B6)
+  - [分类-批量注册组件](#%E5%88%86%E7%B1%BB-%E6%89%B9%E9%87%8F%E6%B3%A8%E5%86%8C%E7%BB%84%E4%BB%B6)
   - [分类-激活头部导航](#%E5%88%86%E7%B1%BB-%E6%BF%80%E6%B4%BB%E5%A4%B4%E9%83%A8%E5%AF%BC%E8%88%AA)
+  - [基础布局搭建](#%E5%9F%BA%E7%A1%80%E5%B8%83%E5%B1%80%E6%90%AD%E5%BB%BA)
+  - [分类商品-布局](#%E5%88%86%E7%B1%BB%E5%95%86%E5%93%81-%E5%B8%83%E5%B1%80)
+  - [分类商品-展示](#%E5%88%86%E7%B1%BB%E5%95%86%E5%93%81-%E5%B1%95%E7%A4%BA)
+  - [面包屑切换动画](#%E9%9D%A2%E5%8C%85%E5%B1%91%E5%88%87%E6%8D%A2%E5%8A%A8%E7%94%BB)
+  - [处理跳转细节](#%E5%A4%84%E7%90%86%E8%B7%B3%E8%BD%AC%E7%BB%86%E8%8A%82)
+  - [展示面包屑](#%E5%B1%95%E7%A4%BA%E9%9D%A2%E5%8C%85%E5%B1%91)
+  - [筛选区展示](#%E7%AD%9B%E9%80%89%E5%8C%BA%E5%B1%95%E7%A4%BA)
+  - [复选框组件封装](#%E5%A4%8D%E9%80%89%E6%A1%86%E7%BB%84%E4%BB%B6%E5%B0%81%E8%A3%85)
     - [03-分类-切换分类时更新数据](#03-%E5%88%86%E7%B1%BB-%E5%88%87%E6%8D%A2%E5%88%86%E7%B1%BB%E6%97%B6%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE)
     - [04-分类-渲染面包屑](#04-%E5%88%86%E7%B1%BB-%E6%B8%B2%E6%9F%93%E9%9D%A2%E5%8C%85%E5%B1%91)
     - [05-分类-商品分类布局](#05-%E5%88%86%E7%B1%BB-%E5%95%86%E5%93%81%E5%88%86%E7%B1%BB%E5%B8%83%E5%B1%80)
@@ -297,14 +306,15 @@ export default {
 - 添加激活样式
 
 ```diff
-    a {
+    > a {
       font-size: 16px;
       line-height: 32px;
       height: 32px;
       display: inline-block;
++      // 当a链接上有active的时候会有激活样式
 +      &.active {
-+        color: var(--xtx-color);
-+        border-bottom: 1px solid var(--xtx-color);
++          color: @xtxColor;
++          border-bottom: 1px solid @xtxColor;
 +      }
     }
 ```
@@ -313,16 +323,22 @@ export default {
 
 
 
-- 设置激活类名
+- 设置激活类名 && 优化点击为 undefined 体验
 
 ```diff
-      <RouterLink
-        v-if="item.id"
-+        active-class="active"
-        :to="`/category/${item.id}`"
-      >
-        {{ item.name }}
-      </RouterLink>
++      <router-link :to="`/category/${item.id}`"  @click="hide(item.id)" active-class="active" exact>{{item.name}}</router-link>
+      <div class="layer" :class="{open: item.open}">
+        <ul>
+          <li v-for="sub in item.children" :key="sub.id">
+            <router-link :to="`/category/sub/${sub.id}`" @click="hide(item.id)" v-if="item.id">
+              <img :src="sub.picture" alt="">
+              <p>{{sub.name}}</p>
+            </router-link>
++            <!-- 在没有加载数据的时候可以看到分类，没有加载完数据不让点击 -->
++            <a v-else href="javascript:;">{{ item.name }}</a>
+          </li>
+        </ul>
+      </div>
 ```
 
 
@@ -330,258 +346,67 @@ export default {
 **总结：**
 
 - 当要实现 路由链接 激活时候，可以使用激活类名来实现。
-  - active-class 设置一个 激活样式的类名即可
-
-
-
-### 03-分类-切换分类时更新数据
-
-> 目标：通过路由的钩子函数监听改变跟下数据
-
-大致步骤：
-
-- 去发现，动态路由参数改变不会初始化组件
-  - 通过路由切换组件（初始化组件）：路由规则发生改变
-- 使用 `onBeforeRouteUpdate` 可以监听参数改变
-- 切换分类跟下轮播图数据（重新请求，每个分类下的轮播图都不一样）
-
-
-
-具体代码：
-
--  `onBeforeRouteUpdate`  用法
-
-```js
-    onBeforeRouteUpdate((to, from, next) => {
-      // to 去哪里，路由对象
-      // from 哪里来，路由对象
-      // next() 下一步
-      next();
-    });
-```
-
-- 更新轮播图数据（后台数据一样，打乱一下模拟下）
-
-```js
-import { onMounted, ref } from "vue";
-import { getSliders } from "@/api/home";
-import { onBeforeRouteUpdate } from "vue-router";
-export default {
-  name: "xtx-category-page",
-  setup() {
-    // 获取随机轮播图
-    const sliders = ref([]);
-    const initSliders = async () => {
-      const data = await getSliders();
-      sliders.value = data.result.sort(() => Math.random() - 0.5);
-    };
-    onMounted(initSliders);
-    onBeforeRouteUpdate((to, from, next) => {
-      initSliders();
-      next();
-    });
-
-    return { sliders };
-  },
-};
-```
-
-
-
-**总结：**
-
-- 当路由只是参数改变不会渲染组件，需要路由规则改变
-- 使用`onBeforeRouteUpdate`  可以监听到参数改变，去更新组件数据
+  - `active-class` 设置一个 激活样式的类名即可
 
 
 
 
+## 基础布局搭建
 
-### 04-分类-渲染面包屑
-
-> 目的：获取分类属性，渲染面包屑
+> 目的： 完成顶级分类的，面包屑+轮播图+所属全部子级分类展示。
 
 大致步骤：
 
-- 定义API
-- 组件初始化和参数更新获取数据
-- 渲染面包屑
-- 加上动切换画
-
-
+- 准备基础结构，获取轮播图数据给组件使用
+- 获取面包屑和所有分类数据给子级分类展示使用
 
 落地代码：
 
-- 定义API `api/goods.js`
-
-```js
-import request from "@/utils/request";
-// 商品分类
-export const getTopCategory = (id) => request("/category", "get", { id });
-```
-
-- 组件初始化和参数更新获取数据
-
-```js
-import { getTopCategory } from "@/api/goods";
-```
-
-```js
-   // 获取分类信息
-    const category = ref({});
-    const initCategory = async (id) => {
-      const data = await getTopCategory(id);
-      category.value = data.result;
-    };
-    const route = useRoute();
-    onMounted(() => {
-      initCategory(route.params.id);
-    });
-    onBeforeRouteUpdate((to, from, next) => {
-      initCategory(to.params.id);
-      next();
-    });
-
-    return { sliders, category };
-```
-
-- 渲染面包屑，加切换动画
-
-```vue
-        <Transition name="fade-right" mode="out-in">
-          <XtxBreadItem :key="category.id">{{ category.name }}</XtxBreadItem>
-        </Transition>
-```
-
-
-
-**总结：**
-
-- key可以让元素或组件更新（移除和创建）
-- `mode="out-in"` 让动画先出后进
-
-
-
-
-
-### 05-分类-商品分类布局
-
-> 目标：完成全部分类渲染和分类商品渲染
-
-大致步骤
-
-- 全局单个商品组件
-- 基础布局
-
-
-
-具体代码：
-
-- 全局单个商品组件
-
-组件 `components/goods-item`
+基本结构和轮播图渲染 `src/views/category/index.vue`
 
 ```vue
 <template>
-  <RouterLink to="/" class="goods-item">
-    <img
-      src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/fresh_goods_2.jpg"
-      alt=""
-    />
-    <p class="name ellipsis">红功夫 麻辣小龙虾 19.99/500g 实惠到家</p>
-    <p class="desc ellipsis">火锅食材</p>
-    <p class="price">&yen;19.99</p>
-  </RouterLink>
-</template>
-
-<script>
-export default {
-  name: "GoodsItem",
-};
-</script>
-
-<style scoped lang="less">
-.goods-item {
-  display: block;
-  width: 220px;
-  padding: 20px 30px;
-  text-align: center;
-  background: #fff;
-  transition: all 0.5s;
-  &:hover {
-    transform: translate3d(0, -3px, 0);
-    box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
-  }
-  img {
-    width: 160px;
-    height: 160px;
-  }
-  p {
-    padding-top: 10px;
-  }
-  .name {
-    font-size: 16px;
-  }
-  .desc {
-    color: #999;
-    height: 29px;
-  }
-  .price {
-    color: var(--price-color);
-    font-size: 20px;
-  }
-}
-</style>
-```
-
-注册 `main.js`
-
-```js
-// 导入组件
-import GoodsItem from "@/components/goods-item";
-
-// 创建一个vue应用
-const app = createApp(App);
-// 通过app注册 (directive，component) 都是在app实例上
-app.component(GoodsItem.name, GoodsItem);
-// 使用仓库vuex，使用路由，使用组件库，挂载到app容器
-app.use(store).use(router).use(ErabbitUI).mount("#app");
-```
-
-
-
-- 基础布局 `views/category/index.vue`
-
-```vue
+  <div class="top-category">
+    <div class="container">
+      <!-- 面包屑 -->
+      <XtxBread>
+        <XtxBreadItem to="/">首页</XtxBreadItem>
+        <XtxBreadItem>空调</XtxBreadItem>
+      </XtxBread>
+      <!-- 轮播图 -->
+      <XtxCarousel :sliders="sliders" style="height:500px" />
       <!-- 所有二级分类 -->
       <div class="sub-list">
         <h3>全部分类</h3>
         <ul>
-          <li v-for="i in 6" :key="i">
+          <li v-for="i in 8" :key="i">
             <a href="javascript:;">
-              <img
-                src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/img/category%20(9).png"
-              />
+              <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/img/category%20(9).png" >
               <p>空调</p>
             </a>
           </li>
         </ul>
       </div>
-      <!-- 分类关联商品 -->
-      <div class="ref-goods">
-        <div class="head">
-          <h3>- 海鲜 -</h3>
-          <p class="tag">温暖柔软，品质之选</p>
-          <XtxMore />
-        </div>
-        <div class="body">
-          <GoodsItem v-for="i in 5" :key="i" />
-        </div>
-      </div>
-```
-
-```less
-.xtx-category-page {
+      <!-- 不同分类商品 -->
+    </div>
+  </div>
+</template>
+<script>
+import { findBanner } from '@/api/home'
+export default {
+  name: 'TopCategory',
+  setup () {
+    // 轮播图
+    const sliders = ref([])
+    findBanner().then(data => {
+      sliders.value = data.result
+    })
+    return { sliders }  
+  }
+}
+</script>
+<style scoped lang="less">
+.top-category {
   h3 {
     font-size: 28px;
     color: #666;
@@ -611,134 +436,871 @@ app.use(store).use(router).use(ErabbitUI).mount("#app");
             line-height: 40px;
           }
           &:hover {
-            color: var(--xtx-color);
+            color: @xtxColor;
           }
         }
       }
     }
   }
 }
-.ref-goods {
-  background-color: #fff;
-  margin-top: 20px;
-  position: relative;
-  .head {
-    .xtx-more {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-    .tag {
-      text-align: center;
-      color: #999;
-      font-size: 20px;
-      position: relative;
-      top: -20px;
-    }
-  }
-  .body {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    padding: 0 65px 30px;
-    .none {
-      height: 220px;
-      text-align: center;
-      width: 100%;
-      line-height: 220px;
-      color: #999;
-    }
-  }
-}
+</style>
 ```
 
+从vuex获取分类数据，进行渲染。
+```js
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+```
+```js
+// 面包屑 + 所有子分类 => vuex
+const route = useRoute()
+const store = useStore()
+const topCategory = computed(() => {
+    let cate = {}
+    // 当前顶级分类 => 根据路由上的 id 去 vuex 中 category 模块的 list 中查找
+    const item = store.state.category.list.find(item => item.id === route.params.id)
+    if (item) cate = item
+    return cate
+})
 
+return {
+    sliders,
+    topCategory,
+}
+```
+```vue
+<template>
+  <div class="top-category">
+    <div class="container">
+      <!-- 面包屑 -->
+      <XtxBread>
+        <XtxBreadItem to="/">首页</XtxBreadItem>
+        <XtxBreadItem>{{topCategory.name}}</XtxBreadItem>
+      </XtxBread>
+      <!-- 轮播图 -->
+      <XtxCarousel :sliders="sliders" style="height:500px" />
+      <!-- 所有二级分类 -->
+      <div class="sub-list">
+        <h3>全部分类</h3>
+        <ul>
+          <li v-for="item in topCategory.children" :key="item.id">
+            <a href="javascript:;">
+              <img :src="item.picture" >
+              <p>{{item.name}}</p>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <!-- 不同分类商品 -->
+    </div>
+  </div>
+</template>
+```
 
-**总结：**
+## 分类商品-布局
 
-- 在vue3中全局注册组件 `app.component()`
-- 在vue3中全局注册指令 `app.directive()`
-
-
-
-
-
-### 06-分类-商品分类渲染
-
-> 目标：完成商品分类渲染
+> 目的： 展示各个子级分类下推荐的商品基础布局
 
 大致步骤：
 
-- 单个商品组件支持传递商品对象
-- 完成渲染
-
-
+- 准备单个商品组件
+- 完成推荐商品区块布局
 
 落地代码：
 
-- 单个商品组件 `goods-item.vue`
+商品信息组件 `src/views/category/components/goods-item.vue`
 
 ```vue
 <template>
-  <RouterLink to="/" class="goods-item">
-    <img :src="goods.picture || require('@/assets/200.png')" />
-    <p class="name ellipsis">{{ goods.name || "&nbsp;" }}</p>
-    <p class="desc ellipsis">{{ goods.name || "&nbsp;" }}</p>
-    <p class="price">
-      {{ goods.price ? `&yen;${goods.price}` : "&nbsp;" }}
-    </p>
+  <RouterLink :to="`/product/${goods.id}`" class='goods-item'>
+  <!-- 如果没有数据 => 展示默认图片 -->
+    <img :src="goods.picture || require(''@/assets/images/200.png'')" alt="">
+    <!-- 如果没有数据，展示空白 -->
+    <p class="name ellipsis">{{goods.name || "&nbsp;" }}</p>
+    <p class="desc ellipsis">{{goods.desc || "&nbsp;" }}</p>
+    <p class="price">&yen;{{goods.price || "&nbsp;" }}</p>
   </RouterLink>
 </template>
 
 <script>
 export default {
-  name: "GoodsItem",
+  name: 'GoodsItem',
   props: {
     goods: {
       type: Object,
-      default: () => ({}),
-    },
-  },
-};
+      default: () => {}
+    }
+  }
+}
 </script>
-```
 
+<style scoped lang='less'>
+.goods-item {
+  display: block;
+  width: 220px;
+  padding: 20px 30px;
+  text-align: center;
+  .hoverShadow();
+  img {
+    width: 160px;
+    height: 160px;
+  }
+  p {
+    padding-top: 10px;
+  }
+  .name {
+    font-size: 16px;
+  }
+  .desc {
+    color: #999;
+    height: 29px;
+  }
+  .price {
+    color: @priceColor;
+    font-size: 20px;
+  }
+}
+</style>
+
+```
+**总结：**
+
+- vuecli中，在模板语法中，可以使用 `require('地址')` 动态插入图片
 
 
 - 完成渲染 `views/category/index.vue`
 
 ```vue
-     <!-- 所有二级分类 -->
-      <div class="sub-list">
-        <h3>全部分类</h3>
-        <ul>
-          <li v-for="sub in category.children" :key="sub.id">
-            <a href="javascript:;">
-              <img :src="sub.picture" />
-              <p>{{ sub.name }}</p>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <!-- 分类关联商品 -->
-      <div class="ref-goods" v-for="sub in category.children" :key="sub.id">
-        <div class="head">
-          <h3>- {{ sub.name }} -</h3>
-          <p class="tag">温暖柔软，品质之选</p>
-          <XtxMore />
-        </div>
-        <div class="body">
-          <GoodsItem v-for="item in sub.goods" :key="item.id" :goods="item" />
-          <div v-if="!sub.goods.length" class="none">暂无商品</div>
-        </div>
-      </div>
+<!-- 所有二级分类 -->
+<div class="sub-list" v-if="topCategory.children">
+    <h3>全部分类</h3>
+    <ul>
+        <li v-for="item in topCategory.children" :key="item.id">
+        <a href="javascript:;">
+            <img :src="item.picture" >
+            <p>{{item.name}}</p>
+        </a>
+        </li>
+    </ul>
+    </div>
+    <!-- 不同分类商品 -->
+    <!-- 分类关联商品 -->
+    <div class="ref-goods" v-for="sub in subList" :key="sub.id">
+    <div class="head">
+        <h3>- {{sub.name}} -</h3>
+        <p class="tag">温暖柔软，品质之选</p>
+        <XtxMore :path="`/category/sub/${sub.id}`"/>
+    </div>
+    <div class="body">
+        <GoodsItem v-for="goods in sub.goods" :key="goods.id" :goods='goods'/>
+        <!-- 如果没有数据 => 展示暂无商品 -->
+        <div v-if="!sub.goods.length" class="none">暂无商品</div>
+    </div>
+</div>
+```
+```diff
+.body {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    padding: 0 65px 30px;
++    .none {
++        height: 220px;
++        text-align: center;
++        width: 100%;
++        line-height: 220px;
++        color: #999;
++    }
+}
+```
+
+- 顶级分类组件，进行布局 `src/views/category/index.vue`
+
+```diff
++import GoodsItem from './components/goods-item'
+export default {
+  name: 'TopCategory',
+  components: {
++    GoodsItem
+},
+```
+
+```html
+<!-- 分类关联商品 -->
+<div class="ref-goods">
+<div class="head">
+    <h3>- 海鲜 -</h3>
+    <p class="tag">温暖柔软，品质之选</p>
+    <XtxMore />
+</div>
+<div class="body">
+    <GoodsItem v-for="i in 5" :key="i" />
+</div>
+</div>
+```
+```less
+.ref-goods {
+    background-color: #fff;
+    margin-top: 20px;
+    position: relative;
+    .head {
+        .xtx-more {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        }
+        .tag {
+        text-align: center;
+        color: #999;
+        font-size: 20px;
+        position: relative;
+        top: -20px;
+        }
+    }
+    .body {
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        padding: 0 65px 30px;
+    }
+}
+```
+
+## 切换分类时更新数据
+
+> 目标：通过路由的钩子函数监听改变更新数据
+
+大致步骤：
+
+- 发现动态路由参数改变不会初始化组件
+  - 通过路由切换组件（初始化组件）：路由规则发生改变
+- 使用 `onBeforeRouteUpdate` 可以监听参数改变
+- 切换分类跟下轮播图数据（重新请求，每个分类下的轮播图都不一样）
+
+
+
+具体代码：
+
+-  `onBeforeRouteUpdate`  用法
+
+```js
+    onBeforeRouteUpdate((to, from, next) => {
+      // to 去哪里，路由对象
+      // from 哪里来，路由对象
+      // next() 下一步
+      next();
+    });
+```
+
+- 更新轮播图数据（后台数据一样，打乱一下模拟下）
+
+```js
+import { onMounted, ref } from "vue";
+import { getSliders } from "@/api/home";
+import { onBeforeRouteUpdate } from "vue-router";
+export default {
+  name: "TopCategory",
+  setup() {
+      
+    // 轮播图
+    const sliders = ref([])
+    // 调用API获取数据
+    const initSilders = async () => {
+      // 实际：获取广告信息的时候传入分类的ID，模拟不同的轮播图数据，随机轮播图数据
+      const { result } = await reqFindBanner()
+      // sort(() => Math.random() - 0.5); 打乱数组的顺序
+      sliders.value = result.sort(() => Math.random() - 0.5)
+    }
+
+    onMounted(initSilders)
+
+    // 需求：切换分类的时候 轮播图数据更新（重新发请求）
+    // 1. 发现，切换分类的时候，只是参数的改变（id的改变），没有切换路由规则，组件没有更新
+    // 2. 需要监听到路由参数的改变，路由提供一个 onBeforeRouteUpdate 监听
+    // 3. 三个参数，去哪里路由对象，哪里来路由对象，next()下一步，和beforeEach(全局)相似
+    // 4. onBeforeRouteUpdate 仅在当前组件下生效
+
+    onBeforeRouteUpdate((to, from, next) => {
+      initSilders()
+      next()
+    })
+
+    return { sliders };
+  },
+};
 ```
 
 
 
 **总结：**
 
-- vuecli中，在模板语法中，可以使用 `require('地址')` 动态插入图片
+- 当路由只是参数改变不会渲染组件，需要路由规则改变
+- 使用`onBeforeRouteUpdate`  可以监听到参数改变，去更新组件数据
+
+
+
+## 分类商品-展示
+### watch 方案
+> 根据切换路由的时候，根据分类ID获取数据，渲染分类商品。
+
+大致步骤：
+
+- 定义API，组件初始化要去加载数据，但是动态路由不会重新初始化组件。
+- 如果监听地址栏id的变化，然后变化了就去加载数据，但是初始化有不会加载了。
+- 不过watch提供了 immediate: true 可让watch初始化的时候主动触发一次。
+
+落地代码：
+
+定义API `src/api/category.js`
+
+```js
+/**
+ * 获取单个顶级分类信息
+ * @param {String} id - 顶级分类ID
+ */
+export const findTopCategory = (id) => {
+  return request('/category', 'get', { id })
+}
+```
+
+使用watch加载数据 `src/views/category/index.vue`
+```js
+// 推荐商品
+const subList = ref([])
+const getSubList = () => {
+    findTopCategory(route.params.id).then(data => {
+    subList.value = data.result.children
+    })
+}
+watch(() => route.params.id, (newVal) => {
+    newVal && getSubList()
+}, { immediate: true })
+
+return {
+    sliders,
+    topCategory,
+    subList
+}
+```
+开始渲染 `src/views/category/index.vue`
+```vue
+<template>
+  <RouterLink to="/" class='category-goods'>
+    <img :src="goods.picture" alt="">
+    <p class="name ellipsis">{{goods.name}}</p>
+    <p class="desc ellipsis">{{goods.tag}}</p>
+    <p class="price">&yen;{{goods.price}}</p>
+  </RouterLink>
+</template>
+
+<script>
+export default {
+  name: 'CategoryGoods',
+  props: {
+    goods: {
+      type: Object,
+      default: () => {}
+    }
+  }
+}
+</script>    
+```
+
+### onBeforeRouteUpdate 方案
+
+> 根据切换路由的时候，根据分类ID获取数据，渲染分类商品。
+
+大致步骤：
+
+- 定义API，组件初始化要去加载数据，但是动态路由不会重新初始化组件。
+- 发现，切换分类的时候，只是参数的改变（id的改变），没有切换路由规则，组件没有更新
+- 需要监听到路由参数的改变，路由提供一个 onBeforeRouteUpdate 监听
+
+落地代码：
+
+- 使用 `onBeforeRouteUpdate` 加载数据 `src/views/category/index.vue`
+
+```js
+  setup () {
+
+    // 获取各个子类目下的推荐商品
+    const subList = ref([])
+    const getSubList = (id) => {
+      reqFindTopCategory(id).then(data => {
+        subList.value = data.result.children
+      })
+    }
+
+    // 需求：组件初始化，分类切换的时候，获取对应分类数据，渲染面包屑，加上动画
+    // 1. 定义API函数
+    // 2. 组件初始化获取数据，渲染面包屑
+    // 3. 分类切换获取数据,更新数据
+    // 4. 加上动画
+
+    onMounted(() => {
+      getSubList(route.params.id)
+    })
+
+    onBeforeRouteUpdate((to, from, next) => {
+      // console.log(to.params.id); // 获取切换后分分类ID
+      // 获取切换有的ID去发请求
+      if (from.path === `/category/${from.params.id}`) {
+        getSubList(to.params.id)
+      }
+      next()
+    })
+
+    return { topCategory, subList }
+  }
+```
+
+## 面包屑切换动画
+
+> 目的： 由于切换顶级类目，面包屑文字瞬间完成，体验差，给切换的文字加上动画。
+
+大致步骤：
+
+- 给面包屑ITEM组件加上Transition组件并且创建 动画条件
+- 定义动画css样式
+
+落地代码：
+
+- 加transition和name属性，以及加上key属性关联ID才会创建和移除。
+
+```vue
+<transition name="fade-right" mode="out-in">
+    <XtxBreadItem :key="currCategory.id">{{currCategory.name}}</XtxBreadItem>
+</transition>
+```
+
+- 写动画样式 `common.less` 做为公用
+```less
+.fade-right-enter-to,
+.fade-right-leave-from{
+  opacity: 1;
+  transform: none;
+}
+.fade-right-enter-active,
+.fade-right-leave-active{
+  transition: all .5s;
+}
+.fade-right-enter-from,
+.fade-right-leave-to{
+  opacity: 0;
+  transform: translate3d(20px,0,0);
+}
+```
+**总结：** 不同的key可以创建移除元素，创造触发动画条件。
+
+
+## 处理跳转细节
+
+> 目的： 在路由跳转的时候，优化跳转的细节。
+
+大致需求：
+
+- 现在的路由跳转默认在当前浏览的位置（卷曲的高度），我们需要会到顶部。
+- 在点击二级类目的时候，页面滚动到顶部，造成进入一级类名事件触发，显示其对应二级弹窗，需要处理。
+- 切换到二级类目路由的时候也有ID，但是也触发了watch导致发送了请求，需要处理。
+
+落地代码：
+
+每次切换路由的时候滚动到顶部 `src/router/index.js`
+```js
+// vue2 => new VueRouter({}) 创建路由实例
+// vue3 => createRouter({}) 创建路由实例
+const router = createRouter({
+  // hash路由模式
+  history: createWebHashHistory(),
+  routes,
+  scrollBehavior () {
+    // vue2.0 => x,y
+    // vue3.0 => left,top
+    return { left: 0, top: 0 }
+  }
+})
+```
+
+- 滚动到顶部，鼠标有时候会进入一级类目上，触发弹出二级类目。改成在一级类目上移动弹出二级类目。
+`src/components/app-header-nav.vue`
+```diff
+    <li class="home"><RouterLink to="/">首页</RouterLink></li>
++    <li @mousemove="show(item)"
+```
+
+- 切换到二级类目路由的时候也有ID，但是也触发了watch导致发送了请求，需要处理。 
+`src/views/category/index.vue`
+
+```diff
+watch(() => route.params.id, (newVal) => {
+-      newVal && getSubList()
++      if (newVal && `/category/${newVal}` === route.path) getSubList()
+}, { immediate: true })
+```
+
+**总结：** 跳转的时候需要注意些细节
+
+
+## 展示面包屑
+
+> 目的：根据二级类目ID展示多级面包屑
+
+大致思路：
+
+- 封装一个独立的组件来完成，因为需要加动画。
+
+- 使用组合API的方式通过计算属性得到所需数据
+
+逻辑代码：
+
+- 从vuex中通过计算属性得到面包屑所需数据 `src/views/category/sub-bread.vue`
+
+```vue
+<template>
+  <XtxBread>
+    <XtxBreadItem to="/">首页</XtxBreadItem>
+    <XtxBreadItem v-if="category.top" :to="`/category/${category.top.id}`">{{category.top.name}}</XtxBreadItem>
+    <Transition name="fade-right" mode="out-in">
+      <XtxBreadItem v-if="category.sub" :key="category.sub.id">{{category.sub.name}}</XtxBreadItem>
+    </Transition>
+  </XtxBread>
+</template>
+<script>
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+export default {
+  name: 'SubBread',
+  setup () {
+    // 注意：setup中this不是当前vue实例
+
+    // 1. 获取二级分类的ID，在地址在路由中
+    // route ===> this.$route
+    const route = useRoute()
+    console.log(route.params.id)
+    // 2. 获取vuex中的类目数据
+    // store ===> this.$store
+    const store = useStore()
+    console.log(store)
+    // 3. 通过计算属性得到，二级类目的名称和ID，一级类目的名称和ID
+    const category = computed(() => {
+      const obj = {}
+      store.state.category.list.forEach(top => {
+        top.children && top.children.forEach(sub => {
+          if (sub.id === route.params.id) {
+            // 设置二级类目
+            obj.sub = { id: sub.id, name: sub.name }
+            // 设置一级类目
+            obj.top = { id: top.id, name: top.name }
+          }
+        })
+      })
+      return obj
+    })
+    // 模版需要使用的东西需要setup返回
+    return { category }
+  }
+}
+</script>
+<style scoped lang="less"></style>
+```
+
+- 将该组件在 `src/views/category/sub-bread.vue` 中使用
+
+```vue
+<template>
+  <div class='sub-category'>
+    <div class="container">
+      <!-- 面包屑 -->
+      <SubBread />
+      
+    </div>
+  </div>
+</template>
+
+<script>
+import SubBread from './components/sub-bread'
+export default {
+  name: 'SubCategory',
+  components: { SubBread}
+}
+</script>
+```
+
+
+## 筛选区展示
+
+> 目的：根据后台返回的筛选条件展示筛选区域。
+
+大致步骤：
+
+- 定义一个组件来展示筛选区域
+- 获取数据进行品牌和属性的渲染
+
+落地代码：
+
+- 基础布局：`src/views/category/sub-filter.vue`
+
+```vue
+<template>
+	<!-- 筛选区 -->
+   <div class="sub-filter">
+     <div class="item" v-for="i in 4" :key="i">
+       <div class="head">品牌：</div>
+       <div class="body">
+         <a href="javascript:;">全部</a>
+         <a href="javascript:;" v-for="i in 4" :key="i">小米</a>
+       </div>
+     </div>
+   </div>
+</template>
+<script>
+export default {
+  name: 'SubFilter'
+}
+</script>
+<style scoped lang='less'>
+  // 筛选区
+  .sub-filter {
+    background: #fff;
+    padding: 25px;
+    .item {
+      display: flex;
+      line-height: 40px;
+      .head {
+        width: 80px;
+        color: #999;
+      }
+      .body {
+        flex: 1;
+        a {
+          margin-right: 36px;
+          transition: all .3s;
+          display: inline-block;  
+          &.active,
+          &:hover {
+            color: @xtxColor;
+          }
+        }
+      }
+    }
+  }
+</style>
+```
+
+在 `sub` 组件使用
+```diff
+<template>
+  <div class='sub-category'>
+    <div class="container">
+      <!-- 面包屑 -->
+      <SubBread />
+      <!-- 筛选区 -->
++      <SubFilter />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import SubBread from './components/sub-bread'
++import SubFilter from './components/sub-filter'
+export default {
+  name: 'SubCategory',
++  components: { SubBread, SubFilter}
+}
+</script>
+```
+
+- 获取数据：在地址栏二级类目ID改变的时候去加载筛选条件数据
+`src/api/category.js` 定义API
+
+```js
+/**
+ * 获取二级分类筛选条件数据
+ * @param {String} id - 二级分类ID
+ */
+export const findSubCategoryFilter = (id) => {
+  return request('/category/sub/filter', 'get', { id })
+}
+```
+
+`src/views/category/sub-filter.vue` 获取数据，组装数据，加上骨架效果
+
+```vue
+<template>
+    <!-- 筛选区 -->
+   <div class="sub-filter" v-if="filterData && !filterLoding">
+     <div class="item">
+       <div class="head">品牌：</div>
+       <div class="body">
+         <a @click="filterData.brands.selectedBrand = item.id" :class="{active: item.id === filterData.brands.selectedBrand}" href="javascript:;" v-for="item in filterData.brands" :key="item.id">{{item.name}}</a>
+       </div>
+     </div>
+      <div class="item" v-for="item in filterData.saleProperties" :key="item.id">
+       <div class="head">{{item.name}}</div>
+       <div class="body">
+         <a href="javascript:;" @click="item.selectedAttr = attr.id" :class="{active: attr.id === item.selectedAttr}" v-for="attr in item.properties" :key="attr.id">{{attr.name}}</a>
+       </div>
+     </div>
+   </div>
+  <div v-else class="sub-filter">
+    <XtxSkeleton class="item" width="800px" height="40px"  />
+    <XtxSkeleton class="item" width="800px" height="40px"  />
+    <XtxSkeleton class="item" width="600px" height="40px"  />
+    <XtxSkeleton class="item" width="600px" height="40px"  />
+    <XtxSkeleton class="item" width="600px" height="40px"  />
+  </div>
+</template>
+<script>
+import { ref } from '@vue/reactivity'
+import { watch } from '@vue/runtime-core'
+import { useRoute } from 'vue-router'
+import { reqFindSubCategoryFilter } from '@/api/category.js'
+export default {
+  name: 'SubFilter',
+  setup () {
+    const route = useRoute()
+    const filterLoding = ref(false)
+    // 监听二级类目ID的变化获取筛选数据
+    const filterData = ref(null)
+    watch(() => route.params.id, (newVal) => {
+      // 变化后 ID 有值且处在二级类名路由下
+      if (newVal && `/category/sub/${newVal}` === route.path) {
+        filterLoding.value = true
+        // 发请求获取数据
+        reqFindSubCategoryFilter(route.params.id).then(({ result }) => {
+          // 每一组可选的筛选条件缺失 全部 条件
+          // 给每一组数据加上一个选中的 id
+          // 1. 品牌
+          result.brands.unshift({ id: null, name: '全部' })
+          result.brands.selectedBrand = null
+          // 2. 属性
+          result.saleProperties.forEach(item => {
+            item.properties.unshift({ id: null, name: '全部' })
+            item.selectedAttr = null
+          })
+          // 设置修改的数据
+          filterData.value = result
+          filterLoding.value = false
+        })
+      }
+    }, {
+      immediate: true
+    })
+    return {
+      filterData,
+      filterLoding
+    }
+  }
+}
+</script>
+```
+
+## 复选框组件封装
+
+> 目的：实现一个自定义复选框组件。
+
+大致步骤：
+
+- 实现组件本身的选中与不选中效果
+- 实现组件的v-model指令
+- 改造成 @vueuse/core 的函数写法
+
+落地代码：
+
+- 实现组件功能
+```vue
+<template>
+  <div class="xtx-checkbox" @click="changeChecked">
+    <i v-if="checked" class="iconfont icon-checked"></i>
+    <i v-else class="iconfont icon-unchecked"></i>
+    <!-- 如果插槽内容存在则显示 -->
+    <span v-if="$slots.default"><slot /></span>
+  </div>
+</template>
+<script>
+import { ref } from '@vue/reactivity'
+import { watch } from '@vue/runtime-core'
+/**
+ * v-model => :modelValue + @update:modelValue
+ */
+export default {
+  name: 'XtxCheckbox',
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false
+    }
+  },
+  setup (props, { emit }) {
+    const checked = ref(false)
+    const changeChecked = () => {
+      checked.value = !checked.value
+      // 使用 emit 通知父组件状态改变
+      emit('update:modelValue', checked.value)
+    }
+    // 使用侦听器 得到父组件传递数据 给 checked 传递数据
+    watch(() => props.modelValue, () => {
+      checked.value = props.modelValue
+    }, {
+      immediate: true
+    })
+    return {
+      checked,
+      changeChecked
+    }
+  }
+}
+</script>
+<style scoped lang="less">
+.xtx-checkbox {
+  display: inline-block;
+  margin-right: 2px;
+  .icon-checked {
+    color: @xtxColor;
+    ~ span {
+      color: @xtxColor;
+    }
+  }
+  i {
+    position: relative;
+    top: 1px;
+  }
+  span {
+    margin-left: 2px;
+  }
+}
+</style>
+```
+
+- 实现双向绑定
+vue3.0中v-model会拆解成 属性 `modelValue` 和 事件 `update:modelValue`
+```js
+export default {
+  name: 'XtxCheckbox',
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false
+    }
+  },
+  setup (props, { emit }) {
+    const checked = ref(false)
+    const changeChecked = () => {
+      checked.value = !checked.value
+      // 使用emit通知父组件数据的改变
+      emit('update:modelValue', checked.value)
+    }
+    // 使用侦听器，得到父组件传递数据，给checked数据
+    watch(() => props.modelValue, () => {
+      checked.value = props.modelValue
+    }, { immediate: true })
+    return { checked, changeChecked }
+  }
+}
+```
 
 
 

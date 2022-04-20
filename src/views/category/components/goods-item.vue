@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-19 15:20:56
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-19 15:37:34
+ * @LastEditTime: 2022-04-20 12:27:34
  * @FilePath: \shopping-centre-management\src\views\category\components\goods-item.vue
  * @Description:
  *
@@ -10,10 +10,12 @@
 -->
 <template>
   <RouterLink :to="`/product/${goods.id}`" class='goods-item'>
-    <img :src="goods.picture" alt="">
-    <p class="name ellipsis">{{goods.name}}</p>
-    <p class="desc ellipsis">{{goods.desc}}</p>
-    <p class="price">&yen;{{goods.price}}</p>
+  <!-- 如果没有数据 => 展示默认图片 -->
+    <img :src="goods.picture || require('@/assets/images/200.png')" alt="">
+    <!-- 如果没有数据，展示空白 -->
+    <p class="name ellipsis">{{goods.name || "&nbsp;" }}</p>
+    <p class="desc ellipsis">{{goods.desc || "&nbsp;" }}</p>
+    <p class="price">&yen;{{goods.price || "&nbsp;" }}</p>
   </RouterLink>
 </template>
 

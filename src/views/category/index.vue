@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-15 10:15:15
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-19 17:49:30
+ * @LastEditTime: 2022-04-20 12:29:10
  * @FilePath: \shopping-centre-management\src\views\category\index.vue
  * @Description:
  *
@@ -44,6 +44,8 @@
         </div>
         <div class="body">
           <GoodsItem v-for="goods in sub.goods" :key="goods.id" :goods='goods'/>
+          <!-- 如果没有数据 => 展示暂无商品 -->
+          <div v-if="!sub.goods.length" class="none">暂无商品</div>
         </div>
       </div>
     </div>
@@ -51,8 +53,8 @@
 </template>
 <script>
 import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
-import { computed, ref, watch } from 'vue'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
 import { reqFindBanner, reqFindTopCategory } from '@/api/home'
 import GoodsItem from './components/goods-item'
 export default {
@@ -63,8 +65,25 @@ export default {
   setup () {
     // 轮播图
     const sliders = ref([])
-    reqFindBanner().then(data => {
-      sliders.value = data.result
+    // 调用API获取数据
+    const initSilders = async () => {
+      // 实际：获取广告信息的时候传入分类的ID，模拟不同的轮播图数据，随机轮播图数据
+      const { result } = await reqFindBanner()
+      // sort(() => Math.random() - 0.5); 打乱数组的顺序
+      sliders.value = result.sort(() => Math.random() - 0.5)
+    }
+
+    onMounted(initSilders)
+
+    // 需求：切换分类的时候 轮播图数据更新（重新发请求）
+    // 1. 发现，切换分类的时候，只是参数的改变（id的改变），没有切换路由规则，组件没有更新
+    // 2. 需要监听到路由参数的改变，路由提供一个 onBeforeRouteUpdate 监听
+    // 3. 三个参数，去哪里路由对象，哪里来路由对象，next()下一步，和beforeEach(全局)相似
+    // 4. onBeforeRouteUpdate 仅在当前组件下生效
+
+    onBeforeRouteUpdate((to, from, next) => {
+      initSilders()
+      next()
     })
 
     // 面包屑 + 所有子分类 => vuex
@@ -80,15 +99,31 @@ export default {
 
     // 获取各个子类目下的推荐商品
     const subList = ref([])
-    const getSubList = () => {
-      reqFindTopCategory(route.params.id).then(data => {
+    const getSubList = (id) => {
+      reqFindTopCategory(id).then(data => {
         subList.value = data.result.children
       })
     }
 
-    watch(() => route.params.id, (newVal) => {
-      if (newVal && `/category/${newVal}` === route.path) getSubList()
-    }, { immediate: true })
+    // 需求：组件初始化，分类切换的时候，获取对应分类数据，渲染面包屑，加上动画
+    // 1. 定义API函数
+    // 2. 组件初始化获取数据，渲染面包屑
+    // 3. 分类切换获取数据,更新数据
+    // 4. 加上动画
+
+    onMounted(() => {
+      getSubList(route.params.id)
+    })
+
+    onBeforeRouteUpdate((to, from, next) => {
+      // console.log(to.params.id); // 获取切换后分分类ID
+      // 获取切换有的ID去发请求
+      if (from.path === `/category/${from.params.id}`) {
+        getSubList(to.params.id)
+      }
+      next()
+    })
+
     return { sliders, topCategory, subList }
   }
 }
@@ -154,6 +189,13 @@ export default {
       justify-content: flex-start;
       flex-wrap: wrap;
       padding: 0 65px 30px;
+        .none {
+            height: 220px;
+            text-align: center;
+            width: 100%;
+            line-height: 220px;
+            color: #999;
+        }
     }
   }
 }
