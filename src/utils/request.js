@@ -1,3 +1,13 @@
+/*
+ * @Author: hidari
+ * @Date: 2022-04-14 11:53:40
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-21 19:38:43
+ * @FilePath: \shopping-centre-management\src\utils\request.js
+ * @Description:
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+ */
 // 1. 创建一个新的axios实例
 // 2. 请求拦截器，如果有token进行头部携带
 // 3. 响应拦截器：1. 剥离无效数据  2. 处理token失效
@@ -8,7 +18,7 @@ import store from '@/store'
 import router from '@/router'
 
 // 导出基准地址，原因：其他地方不是通过axios发请求的地方用上基准地址
-export const baseURL = 'http://pcapi-xiaotuxian-front-devtest.itheima.net/'
+export const baseURL = 'https://apipc-xiaotuxian-front.itheima.net'
 const instance = axios.create({
   // axios 配置 baseURL timeout
   baseURL,
