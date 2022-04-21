@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-20 14:26:27
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-20 16:48:47
+ * @LastEditTime: 2022-04-21 09:20:51
  * @FilePath: \shopping-centre-management\src\views\category\components\sub-sort.vue
  * @Description:
  *
@@ -29,41 +29,59 @@
 </template>
 <script>
 import { reactive } from '@vue/reactivity'
+import { onBeforeRouteUpdate } from 'vue-router'
 export default {
   name: 'SubSort',
+  emits: ['change-sort'],
   setup (props, { emit }) {
     // 实现交互
     // 1. 根据后台需要的参数定义数据对象
     // 2. 根据数据对象，绑定组件（复选框，排序按钮）
     // 3. 在操作排序组件的时候，需要反馈给数据对象
-    // sortField====>publishTime,orderNum,price,evaluateNum
-    // sortMethod====>asc为正序 desc为倒序
+    // 切换效果
+    // 1. 组件初始化的时候，查询是默认的排序，默认排序需要激活
+    // 2. 查看后台排序数据的约定：
+    // 2.1 sortField 参数 publishTime 最新商品 ,orderNum 最高人气 ,evaluateNum 评论最多, price价格
+    // 2.2 sortMethod 参数 desc 降序  asc 升序  (sortField是价格)
+    // 2.3 默认排序 sortField 为 null 即可，如果不是价格排序sortMethod需要是null
+    // 这个组件产生的数据是最作为查询条件发给后台，字段需要和后台保持一致
     const sortParams = reactive({
       inventory: false,
       onlyDiscount: false,
       sortField: null,
       sortMethod: null
     })
+
+    // 搜索参数（关键字）改变后效果重置
+    onBeforeRouteUpdate((to, from, next) => {
+      sortParams.sortField = null
+      sortParams.sortMethod = null
+      next()
+    })
+
     // 提供给模板使用
     // 需要绑定按钮的点击事件修改排序字段和排序方式
     const changeSort = (sortField) => {
       if (sortField === 'price') {
+        // 点击价格
         sortParams.sortField = sortField
         // 处理排序
-        if (sortParams.sortMethod === null) {
-          // 第一次点击
+        if (sortParams.sortField !== 'price') {
+          // 第一次点击 price
           sortParams.sortMethod = 'desc'
         } else {
+          // 多次点击
           sortParams.sortMethod = sortParams.sortMethod === 'desc' ? 'asc' : 'desc'
         }
       } else {
-        // 如果已经选中 阻止运行
-        if (sortParams.sortField !== sortField) {
-          sortParams.sortField = sortField
-          sortParams.sortMethod = null
-        }
+        // 当你点击的是已经激活的按钮，不做任何事情
+        if (sortParams.sortField === sortField) return
+        // 不是点击价格
+        sortParams.sortField = sortField
+        sortParams.sortMethod = null
       }
       // 触发 sort-change 事件
+      // 通知父组件（排序数据）重新发请求
       emit('sort-change', sortParams)
     }
 

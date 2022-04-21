@@ -1,3 +1,13 @@
+<!--
+ * @Author: hidari
+ * @Date: 2022-04-14 18:27:01
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-21 10:23:58
+ * @FilePath: \shopping-centre-management\src\components\app-header.vue
+ * @Description: 头部区域 + 搜索
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+-->
 <template>
   <header class='app-header'>
     <div class="container">
@@ -5,7 +15,7 @@
       <AppHeaderNav />
       <div class="search">
         <i class="iconfont icon-search"></i>
-        <input type="text" placeholder="搜一搜">
+        <input @keyup.enter="search" v-model="keyword" type="text" placeholder="搜一搜">
       </div>
       <div class="cart">
         <a class="curr" href="#">
@@ -17,10 +27,31 @@
 </template>
 
 <script>
+import { ref } from '@vue/reactivity'
+import { useRouter } from 'vue-router'
 import AppHeaderNav from './app-header-nav'
 export default {
   name: 'AppHeader',
-  components: { AppHeaderNav }
+  components: { AppHeaderNav },
+  setup () {
+    // 需求：搜索框输入后回车跳转搜索
+    // 1. 双向绑定搜索框
+    // 2. 绑定按键为 enter 事件
+    // 3. 跳转搜索地址，携带搜索关键字
+    // 4. 清楚搜索框，失去焦点
+    const router = useRouter()
+    const keyword = ref('')
+    const search = (e) => {
+      // 为了查询更多数据，允许空字符串跳过，实际开发需要校验
+      router.push(`/search?keyword=${keyword.value}`)
+      keyword.value = ''
+      e.target.blur()
+    }
+    return {
+      search,
+      keyword
+    }
+  }
 }
 </script>
 

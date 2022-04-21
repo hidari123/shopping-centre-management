@@ -1337,14 +1337,640 @@ export default {
 
 ## 搜索模块
 
-### 07-搜索-头部搜索跳转
+### 排序组件
+
+> 目的：封装排序组件，完成排序切换效果
+
+大致步骤：
+
+- 定义一个组件 sub-sort，完成基础布局
+- 在 sub.vue 组件使用
+- 完成切换排序时候的交换效果
+
+落地代码：
+
+1. 基础布局： `src/views/category/components/sub-sort.vue`
+
+```vue
+<template>
+  <div class='sub-sort'>
+    <div class="sort">
+      <a href="javascript:;">默认排序</a>  
+      <a href="javascript:;">最新商品</a>
+      <a href="javascript:;">最高人气</a>
+      <a href="javascript:;">评论最多</a>
+      <a href="javascript:;">
+        价格排序
+        <i class="arrow up" />
+        <i class="arrow down" />
+      </a>
+    </div>
+    <div class="check">
+      <XtxCheckbox>仅显示有货商品</XtxCheckbox>
+      <XtxCheckbox>仅显示特惠商品</XtxCheckbox>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'SubSort'
+}
+</script>
+<style scoped lang='less'>
+.sub-sort {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  .sort {
+    display: flex;
+    a {
+      height: 30px;
+      line-height: 28px;
+      border: 1px solid #e4e4e4;
+      padding: 0 20px;
+      margin-right: 20px;
+      color: #999;
+      border-radius: 2px;
+      position: relative;
+      transition: all .3s;
+      &.active {
+        background: @xtxColor;
+        border-color: @xtxColor;
+        color: #fff;
+      }
+      .arrow {
+        position: absolute;
+        border: 5px solid transparent;
+        right: 8px;
+        &.up {
+          top: 3px;
+          border-bottom-color: #bbb;
+            &.active {
+            border-bottom-color: @xtxColor;
+          }
+        }
+        &.down {
+          top: 15px;
+          border-top-color: #bbb;
+          &.active {
+            border-top-color: @xtxColor;
+          }
+        }
+      }
+    }
+  }
+  .check {
+    .xtx-checkbox {
+      margin-left: 20px;
+      color: #999;
+    }
+  }
+}
+</style>
+```
+
+使用组件：`src/views/category/sub.vue`
+
+```diff
+<template>
+  <div class='sub-category'>
+    <div class="container">
+      <!-- 面包屑 -->
+      <SubBread />
+      <!-- 筛选区 -->
+      <SubFilter />
+      <!-- 结果区域 -->
++      <div class="goods-list">
++        <!-- 排序 -->
++        <SubSort />
++        <!-- 列表 -->
++      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import SubBread from './components/sub-bread'
+import SubFilter from './components/sub-filter'
++import SubSort from './components/sub-sort'
+export default {
+  name: 'SubCategory',
++  components: { SubBread, SubFilter, SubSort}
+}
+</script>
+
+<style scoped lang='less'>
++.goods-list {
++  background: #fff;
++  padding: 0 25px;
++  margin-top: 25px;
++}
+</style>
+```
+
+2. 交互效果：
+```vue
+<template>
+  <div class='sub-sort'>
+    <div class="sort">
+  <a :class="{active:sortParams.sortField===null}" @click="changeSort(null)" href="javascript:;">默认排序</a>
+      <a :class="{active:sortParams.sortField==='publishTime'}" @click="changeSort('publishTime')" href="javascript:;">最新商品</a>
+      <a :class="{active:sortParams.sortField==='orderNum'}" @click="changeSort('orderNum')" href="javascript:;">最高人气</a>
+      <a :class="{active:sortParams.sortField==='evaluateNum'}" @click="changeSort('evaluateNum')" href="javascript:;">评论最多</a>
+      <a href="javascript:;" @click="changeSort('price')">
+        价格排序
+        <i class="arrow up" :class="{active:sortParams.sortField==='price' && sortParams.sortMethod === 'asc'}" />
+        <i class="arrow down" :class="{active:sortParams.sortField==='price' && sortParams.sortMethod === 'desc'}" />
+      </a>
+    </div>
+    <div class="check">
+      <XtxCheckbox v-model="sortParams.inventory">仅显示有货商品</XtxCheckbox>
+      <XtxCheckbox v-model="sortParams.onlyDiscount">仅显示特惠商品</XtxCheckbox>
+    </div>
+  </div>
+</template>
+<script>
+import { reactive } from '@vue/reactivity'
+import { onBeforeRouteUpdate } from 'vue-router'
+export default {
+  name: 'SubSort',
+  emits: ['change-sort'],
+  setup (props, { emit }) {
+    // 实现交互
+    // 1. 根据后台需要的参数定义数据对象
+    // 2. 根据数据对象，绑定组件（复选框，排序按钮）
+    // 3. 在操作排序组件的时候，需要反馈给数据对象
+    // 切换效果
+    // 1. 组件初始化的时候，查询是默认的排序，默认排序需要激活
+    // 2. 查看后台排序数据的约定：
+    // 2.1 sortField 参数 publishTime 最新商品 ,orderNum 最高人气 ,evaluateNum 评论最多, price价格
+    // 2.2 sortMethod 参数 desc 降序  asc 升序  (sortField是价格)
+    // 2.3 默认排序 sortField 为 null 即可，如果不是价格排序sortMethod需要是null
+    // 这个组件产生的数据是最作为查询条件发给后台，字段需要和后台保持一致
+    const sortParams = reactive({
+      inventory: false,
+      onlyDiscount: false,
+      sortField: null,
+      sortMethod: null
+    })
+
+    // 搜索参数（关键字）改变后效果重置
+    onBeforeRouteUpdate((to, from, next) => {
+      sortParams.sortField = null
+      sortParams.sortMethod = null
+      next()
+    })
+
+    // 提供给模板使用
+    // 需要绑定按钮的点击事件修改排序字段和排序方式
+    const changeSort = (sortField) => {
+      if (sortField === 'price') {
+        // 点击价格
+        sortParams.sortField = sortField
+        // 处理排序
+        if (sortParams.sortField !== 'price') {
+          // 第一次点击 price
+          sortParams.sortMethod = 'desc'
+        } else {
+          // 多次点击
+          sortParams.sortMethod = sortParams.sortMethod === 'desc' ? 'asc' : 'desc'
+        }
+      } else {
+        // 当你点击的是已经激活的按钮，不做任何事情
+        if (sortParams.sortField === sortField) return
+        // 不是点击价格
+        sortParams.sortField = sortField
+        sortParams.sortMethod = null
+      }
+    }
+
+    return {
+      sortParams,
+      changeSort
+    }
+  }
+}
+</script>
+```
+
+### 数据加载
+
+> 目的：实现结果区域商品展示。
+
+大致步骤：
+
+- 完成结果区域商品布局
+- 完成 `xtx-infinite-loading` 组件封装
+- 使用 `xtx-infinite-loading` 完成数据加载和渲染
+
+落地代码：`src/views/category/sub.vue`
+
+1. 基础布局
+
+```vue
+<template>
+  <div class='sub-category'>
+    <div class="container">
+      <!-- 面包屑 -->
+      <SubBread />
+      <!-- 筛选区 -->
+      <SubFilter />
+      <!-- 结果区域 -->
+      <div class="goods-list">
+        <!-- 排序 -->
+        <SubSort />
+        <!-- 列表 -->
+        <ul>
+          <li v-for="i in 20" :key="i" >
+            <GoodsItem :goods="{}" />
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import SubBread from './components/sub-bread'
+import SubFilter from './components/sub-filter'
+import SubSort from './components/sub-sort'
+import GoodsItem from './components/goods-item'
+export default {
+  name: 'SubCategory',
+  components: { SubBread, SubFilter, SubSort, GoodsItem }
+}
+</script>
+
+<style scoped lang='less'>
+.goods-list {
+  background: #fff;
+  padding: 0 25px;
+  margin-top: 25px;
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 5px;
+    li {
+      margin-right: 20px;
+      margin-bottom: 20px;
+      &:nth-child(5n) {
+        margin-right: 0;
+      }
+    }
+  }
+}
+</style>
+```
+
+2. 无限列表加载组件 `src/components/xtx-infinite-loading.vue`
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1616743745379.53c10663.png)
+
+```vue
+<template>
+  <div class="xtx-infinite-loading" ref="target">
+    <div class="loading" v-if="loading">
+      <span class="img"></span>
+      <span class="text">正在加载...</span>
+    </div>
+    <div class="none" v-if="finished">
+      <span class="img"></span>
+      <span class="text">亲，没有更多了</span>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref } from '@vue/reactivity'
+import { useIntersectionObserver } from '@vueuse/core'
+export default {
+  name: 'XtxInfiniteLoading',
+  props: {
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    finished: {
+      type: Boolean,
+      default: false
+    }
+  },
+  setup (props, { emit }) {
+    const target = ref(null)
+    // 监听 target 是否进入可视区
+    useIntersectionObserver(
+      target,
+      ([{ isIntersecting }]) => {
+        if (isIntersecting) {
+          console.log(111)
+          // 触发加载事件条件
+          // 请求加载完成，数据加载完毕
+          if (!props.loading && !props.finished) {
+            emit('infinite')
+          }
+        }
+      },
+      { threshold: 0 })
+    return {
+      target
+    }
+  }
+}
+</script>
+
+<style scoped lang='less'>
+.xtx-infinite-loading {
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    .img {
+      width: 50px;
+      height: 50px;
+      background: url(../../assets/images/load.gif) no-repeat center / contain;
+    }
+    .text {
+      color: #999;
+      font-size: 16px;
+    }
+  }
+  .none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    .img {
+      width: 200px;
+      height: 134px;
+      background: url(../../assets/images/none.png) no-repeat center / contain;
+    }
+    .text {
+      color: #999;
+      font-size: 16px;
+    }
+  }
+}
+</style>
+```
+
+3. 定义获取数据的API `src/api/category.js`
+
+```js
+
+/**
+ * 获取分类下的商品（带筛选条件）
+ * @param {Object} params - 可参考接口文档
+ */
+export const reqFindSubCategoryGoods = (params) => {
+  return request('/category/goods/temporary', 'post', params)
+}
+```
+
+4. 在`src/views/category/sub.vue` 使用组件
+
+```diff
+<!-- 结果区域 -->
+<div class="goods-list">
+<!-- 排序 -->
+<GoodsSort />
+<!-- 列表 -->
+<ul>
+    <li v-for="item in list" :key="item.id" >
+    <GoodsItem :goods="item" />
+    </li>
+</ul>
+<!-- 加载 -->
++   <XtxInfiniteLoading :loading="loading" :finished="finished" @infinite="getData" />
+</div>
+```
+```vue
+<script>
+import SubBread from './components/sub-bread'
+import SubFilter from './components/sub-filter'
+import SubSort from './components/sub-sort.vue'
+import GoodsItem from './components/goods-item.vue'
+import { ref } from '@vue/reactivity'
+import { reqFindSubCategoryGoods } from '@/api/category.js'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+export default {
+  name: 'SubCategory',
+  components: { SubBread, SubFilter, SubSort, GoodsItem },
+  setup () {
+    const route = useRoute()
+    // 加载中
+    const loading = ref(false)
+    // 加载完毕
+    const finished = ref(false)
+    // 商品列表数据
+    const goodsList = ref([])
+    // 请求参数
+    let reqParams = {
+      page: 1,
+      pageSize: 20
+    }
+    const getData = async () => {
+      loading.value = true
+      // 设置二级分类ID
+      reqParams.categoryId = route.params.categoryId
+      const { result } = await reqFindSubCategoryGoods(reqParams)
+      // 数据获取成功
+      if (result.items.length) {
+        // 有数据追加数据
+        goodsList.value.push(...result.items)
+        // 把 page 改为下一页
+        reqParams.page++
+        loading.value = false
+      } else {
+        // 没有数据 代表加载完成
+        finished.value = true
+      }
+    }
+
+    // 在更改二级分类时重新加载数据
+    onBeforeRouteUpdate((to, from, next) => {
+      if (to.path === `/category/sub/${to.params.id}`) {
+        finished.value = false
+        goodsList.value = [] // 列表为空 加载更多组件顶上来 进入可视区 加载数据
+        reqParams = {
+          page: 1,
+          pageSize: 20
+        }
+        next()
+      }
+    })
+
+    return {
+      getData,
+      loading,
+      finished,
+      goodsList
+    }
+  }
+}
+</script>
+```
+
+### 进行筛选
+
+> 目的：在做了筛选和排序的时候重新渲染商品列表。
+
+大致步骤：
+
+- 排序组件，当你点击了排序后 或者 复选框改变后 触发自定义事件 `sort-change` 传出排序参数
+- 筛选组件，当你改了品牌，或者其他筛选添加，触发自定义事件 `filter-change` 传出筛选参数
+- 在sub组件，分别绑定 `sort-change` `filter-change` 得到参数和当前参数合并，回到第一页，清空数据，设置未加载完成，触发加载。
+
+
+落地代码：
+
+组件：`src/views/category/components/sub-sort.vue`
+
+```diff
+    // 改变排序
+    const changeSort = (sortField) => {
+      // 省略代码....
++      emit('sort-change', sortParams)
+    }    
+```
+
+```vue
+<div class="check">
+    <XtxCheckbox @change="changeCheck" v-model="sortParams.inventory">仅显示有货商品</XtxCheckbox>
+    <XtxCheckbox @change="changeCheck" v-model="sortParams.onlyDiscount">仅显示特惠商品</XtxCheckbox>
+</div>
+```
+
+```js
+const changeCheck = (sortField) => {
+    emit('sort-change', sortParams)
+}
+```
+
+组件 `src/views/category/components/sub-filter.vue`
+
+
+```vue
+<script>
+import { ref } from '@vue/reactivity'
+import { watch } from '@vue/runtime-core'
+import { useRoute } from 'vue-router'
+import { reqFindSubCategoryFilter } from '@/api/category.js'
+export default {
+  name: 'SubFilter',
+  setup (props, { emit }) {
+    const route = useRoute()
+    const filterLoding = ref(false)
+    // 监听二级类目ID的变化获取筛选数据
+    const filterData = ref(null)
+    watch(() => route.params.id, (newVal) => {
+      // 变化后 ID 有值且处在二级类名路由下
+      if (newVal && `/category/sub/${newVal}` === route.path) {
+        filterLoding.value = true
+        // 发请求获取数据
+        reqFindSubCategoryFilter(route.params.id).then(({ result }) => {
+          // 每一组可选的筛选条件缺失 全部 条件
+          // 给每一组数据加上一个选中的 id
+          // 1. 品牌
+          result.brands.unshift({ id: null, name: '全部' })
+          result.brands.selectedBrand = null
+          // 2. 属性
+          result.saleProperties.forEach(item => {
+            item.properties.unshift({ id: null, name: '全部' })
+            item.selectedAttr = null
+          })
+          // 设置修改的数据
+          filterData.value = result
+          filterLoding.value = false
+        })
+      }
+    }, {
+      immediate: true
+    })
+
+    // 获取筛选参数的函数
+    const getFilterParams = () => {
+      // 参考数据
+      // {brandId: '', attrs: [{groupName: '', propertyName: ''}, {}]}
+      const filterParams = { brandId: null, attrs: [] }
+      // 品牌
+      filterParams.brandId = filterData.value.brands.selectedBrand
+      // 销售属性
+      filterData.value.saleProperties.forEach(item => {
+        if (item.selectedAttr) {
+          const attr = item.properties.find(attr => attr.id === item.selectedAttr)
+          filterParams.attrs.push({ groupName: item.name, propertyName: attr.name })
+        }
+      })
+      if (filterParams.attrs.length === 0) filterParams.attrs = null
+      return filterParams
+    }
+
+    // 记录当前选择的品牌
+    const changeBrand = (brandId) => {
+      if (filterData.value.brands.selectedBrand === brandId) return
+      filterData.value.brands.selectedBrand = brandId
+      emit('filter-change', getFilterParams())
+    }
+
+    // 记录选择的销售属性
+    const changeAttr = (item, attrId) => {
+      if (item.selectedAttr === attrId) return
+      item.selectedAttr = attrId
+      emit('filter-change', getFilterParams())
+    }
+    return {
+      filterData,
+      filterLoding,
+      changeBrand,
+      changeAttr
+    }
+  }
+}
+</script>
+```
+
+组件 `src/views/category/sub.vue`
+
+```vue
+<SubFilter @sort-change="changeFilter" />
+```
+
+```vue
+<GoodsSort @filter-change="changeSort"/>
+```
+
+```js
+// 更改排序组件的排序属性 重新请求
+const sortChange = (sortParams) => {
+    reqParams = { ...reqParams, ...sortParams }
+    // 合并请求参数 保留之前参数
+    reqParams.page = 1
+    goodsList.value = [] // 列表为空 加载更多组件顶上来 进入可视区 加载数据
+    finished.value = false
+}
+// 更改筛选组件的筛选属性 重新请求
+const filterChange = (filterParams) => {
+    finished.value = false
+    // 合并请求参数 保留之前参数
+    reqParams.page = 1
+    goodsList.value = [] // 列表为空 加载更多组件顶上来 进入可视区 加载数据
+    reqParams = { ...reqParams, ...filterParams }
+}
+
+return { loading, finished, goodsList, getData, changeFilter, changeSort }
+```
+
+
+### 头部搜索跳转
 
 > 目标：搜索框输入框后回车跳转搜索
 
 大致步骤：
 
 - 双向绑定输入框
-- 绑定按键且enter事件
+- 绑定按键且`enter`事件
 - 跳转搜索地址，携带搜索关键字
 - 清空输入框，失去焦点
 
@@ -1384,7 +2010,7 @@ export default {
 
 
 
-### 08-搜索-路由与组件结构
+## 路由与组件结构
 
 > 目的：准备路由规则和组件基础布局
 
@@ -1464,215 +2090,11 @@ const Search = () => import("@/views/search/index");
 - 面包屑文字  `views/search/index.vue`
 
 ```vue
-      <XtxBread>
-        <XtxBreadItem to="/">首页</XtxBreadItem>
-        <XtxBreadItem>搜索 "{{ $route.query.keyword }}" 的结果：</XtxBreadItem>
-      </XtxBread>
+<XtxBread>
+    <XtxBreadItem to="/">首页</XtxBreadItem>
+    <XtxBreadItem>搜索 "{{ $route.query.keyword }}" 的结果：</XtxBreadItem>
+</XtxBread>
 ```
-
-
-
-
-
-### 09-搜索-排序组件
-
-> 目的：实现排序按钮切换效果
-
-大致步骤：
-
-- 组件布局
-- 理解后台参数规则
-- 切换效果
-
-
-
-具体代码：
-
-- 基础布局
-
-```vue
-<template>
-  <div class='search-sort'>
-    <div class="sort">
-      <a href="javascript:;">默认排序</a>  
-      <a href="javascript:;">最新商品</a>
-      <a href="javascript:;">最高人气</a>
-      <a href="javascript:;">评论最多</a>
-      <a href="javascript:;">
-        价格排序
-        <i class="arrow up" />
-        <i class="arrow down" />
-      </a>
-    </div>
-  </div>
-</template>
-<script>
-export default {
-  name: 'SubSort'
-}
-</script>
-<style scoped lang='less'>
-.search-sort {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  .sort {
-    display: flex;
-    a {
-      height: 30px;
-      line-height: 28px;
-      border: 1px solid #e4e4e4;
-      padding: 0 20px;
-      margin-right: 20px;
-      color: #999;
-      border-radius: 2px;
-      position: relative;
-      transition: all .3s;
-      &.active {
-        background: var(--xtx-color);
-        border-color: var(--xtx-color);
-        color: #fff;
-      }
-      .arrow {
-        position: absolute;
-        border: 5px solid transparent;
-        right: 8px;
-        &.up {
-          top: 3px;
-          border-bottom-color: #bbb;
-            &.active {
-            border-bottom-color: var(--xtx-color);
-          }
-        }
-        &.down {
-          top: 15px;
-          border-top-color: #bbb;
-          &.active {
-            border-top-color: var(--xtx-color);
-          }
-        }
-      }
-    }
-  }
-}
-</style>
-```
-
-使用组件 `search/index.vue`
-
-```js
-import SearchSort from "./components/search-sort.vue";
-export default {
-  name: "xtx-search-page",
-  components: { SearchSort },
-}
-```
-
-```vue
-      <div class="wrapper">
-        <!-- 筛选区 -->
-        <SearchSort />
-        <!-- 结果区 -->
-      </div>  
-```
-
-- 后台参数
-
-```js
-    // sortField====>publishTime,orderNum,price,evaluateNum
-    // sortMethod====>asc为正序 desc为倒序
-		// 传递后台的时候，不需要的值需要至null
-```
-
-- 切换效果 （按钮写死，如果优化数据遍历）
-
-```vue
-<a
-        :class="{ active: sortParams.sortField === null }"
-        @click="changeSort(null)"
-        href="javascript:;"
-        >默认排序</a
-      >
-      <a
-        :class="{ active: sortParams.sortField === 'publishTime' }"
-        @click="changeSort('publishTime')"
-        href="javascript:;"
-        >最新商品</a
-      >
-      <a
-        :class="{ active: sortParams.sortField === 'orderNum' }"
-        @click="changeSort('orderNum')"
-        href="javascript:;"
-        >最高人气</a
-      >
-      <a
-        :class="{ active: sortParams.sortField === 'evaluateNum' }"
-        @click="changeSort('evaluateNum')"
-        href="javascript:;"
-        >评论最多</a
-      >
-      <a @click="changeSort('price')" href="javascript:;">
-        价格排序
-        <i
-          class="arrow up"
-          :class="{
-            active:
-              sortParams.sortField === 'price' &&
-              sortParams.sortMethod == 'asc',
-          }"
-        />
-        <i
-          class="arrow down"
-          :class="{
-            active:
-              sortParams.sortField === 'price' &&
-              sortParams.sortMethod == 'desc',
-          }"
-        />
-      </a>
-```
-
-```js
-import { reactive } from "vue";
-import { onBeforeRouteUpdate } from "vue-router";
-export default {
-  name: "SubSort",
-  emits: ["change-filter"],
-  setup(props, { emit }) {
-    // 1. 根据后台需要的参数定义数据对象
-    // sortField====>publishTime,orderNum,price,evaluateNum
-    // sortMethod====>asc为正序 desc为倒序
-    const sortParams = reactive({
-      sortField: null,
-      sortMethod: null,
-    });
-    // 2.改变排序
-    const changeSort = (sortField) => {
-      if (sortField === "price") {
-        sortParams.sortField = sortField;
-        if (sortParams.sortMethod === null) {
-          // 第一次点击，默认是降序
-          sortParams.sortMethod = "desc";
-        } else {
-          // 其他情况根据当前排序取反
-          sortParams.sortMethod =
-            sortParams.sortMethod === "desc" ? "asc" : "desc";
-        }
-      } else {
-        // 如果排序未改变停止逻辑
-        if (sortParams.sortField === sortField) return;
-        sortParams.sortField = sortField;
-        sortParams.sortMethod = null;
-      }
-    };
-
-    return { sortParams, changeSort };
-  },
-};
-```
-
-注意：现在没有和查询联动，大家可以思考下如何联动。
 
 
 

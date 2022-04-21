@@ -1,3 +1,13 @@
+/*
+ * @Author: hidari
+ * @Date: 2022-04-14 13:57:49
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-21 10:32:55
+ * @FilePath: \shopping-centre-management\src\router\route\layout.route.js
+ * @Description:
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+ */
 export const Layout = [
   // 一级路由布局容器
   {
@@ -22,6 +32,12 @@ export const Layout = [
         path: '/category/sub/:id',
         name: 'SubCategory',
         component: () => import('@/views/category/sub')
+      },
+      {
+        // 搜索模块
+        path: '/search',
+        name: 'Search',
+        component: () => import('@/views/search')
       }
     ]
   }
