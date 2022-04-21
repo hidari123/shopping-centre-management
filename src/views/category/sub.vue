@@ -69,6 +69,7 @@ export default {
         loading.value = false
       } else {
         // 没有数据 代表加载完成
+        loading.value = false
         finished.value = true
       }
     }

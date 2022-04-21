@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 18:34:13
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 18:42:45
+ * @LastEditTime: 2022-04-21 18:58:37
  * @FilePath: \shopping-centre-management\src\views\goods\components\goods-sku.vue
  * @Description:
  *
@@ -14,8 +14,8 @@
       <dt>{{item.name}}</dt>
       <dd>
           <template v-for="val in item.values" :key="val.name">
-              <img v-if="val.picture" class="selected" :src="val.picture" :title="val.name">
-              <span v-else>{{val.name}}</span>
+              <img :class="{active: val.selected}" @click="changeSku(val)" v-if="val.picture" class="selected" :src="val.picture" :title="val.name">
+              <span :class="{active: val.selected}" @click="changeSku(val)" v-else>{{val.name}}</span>
           </template>
       </dd>
     </dl>
@@ -28,6 +28,17 @@ export default {
     goods: {
       type: Object,
       default: () => ({})
+    }
+  },
+  setup () {
+    // 选中与取消选中
+    // 约定每个按钮都有自己的选中状态数据 => selected
+    // 排他思想 点击已选中 => 取消选中 点击未选中 => 同一个规格的按钮改为未选中，当前选中
+    const changeSku = (val) => {
+      val.selected = !val.selected
+    }
+    return {
+      changeSku
     }
   }
 }
