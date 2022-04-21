@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 13:57:49
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 10:32:55
+ * @LastEditTime: 2022-04-21 11:16:15
  * @FilePath: \shopping-centre-management\src\router\route\layout.route.js
  * @Description:
  *
@@ -38,6 +38,12 @@ export const Layout = [
         path: '/search',
         name: 'Search',
         component: () => import('@/views/search')
+      },
+      {
+        // 商品详情
+        path: '/product/:id',
+        name: 'Goods',
+        component: () => import('@/views/goods')
       }
     ]
   }
