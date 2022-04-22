@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 13:08:40
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 17:47:09
+ * @LastEditTime: 2022-04-22 14:02:51
  * @FilePath: \shopping-centre-management\src\views\goods\components\goods-name.vue
  * @Description:
  *
@@ -41,8 +41,10 @@ import { ref } from '@vue/reactivity'
 export default {
   name: 'GoodName',
   props: {
-    goods: Object,
-    default: () => {}
+    goods: {
+      type: Object,
+      default: () => {}
+    }
   },
   setup (props) {
     // 定义传给后台的数据

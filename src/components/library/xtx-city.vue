@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 13:53:44
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 17:48:47
+ * @LastEditTime: 2022-04-22 10:21:06
  * @FilePath: \shopping-centre-management\src\components\library\xtx-city.vue
  * @Description:
  *
@@ -142,7 +142,7 @@ export default {
 // 3. 怎么使用数据？定义计算属性，根据点击的省份城市展示
 const getCityData = () => {
   // 获取城市数据
-  // 这个位置可能有异常操作，封装成promise
+  // 这个位置可能有异步操作，封装成promise
   // 当本地没有缓存 发请求获取数据
   // 当本地有缓存 取出本地数据
   // 返回 promise 在 then 获取数据 原因 => 有可能是发请求的异步操作 有可能是本地的同步操作

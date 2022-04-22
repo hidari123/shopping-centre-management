@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 10:48:51
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 18:37:33
+ * @LastEditTime: 2022-04-22 17:59:18
  * @FilePath: \shopping-centre-management\src\views\goods\index.vue
  * @Description: 商品详情
  *
@@ -31,7 +31,10 @@
             <!-- 名字区组件 -->
             <goods-name :goods="goods"/>
             <!-- 规格组件 -->
-            <goods-sku :goods="goods" />
+            <goods-sku :goods="goods" :skuId="floorPriceId" @change="changeSku"/>
+            <!-- 数量选择组件 -->
+            <xtx-numbox label="数量" v-model="count" :max="goods.inventory" />
+            <XtxButton type="primary" style="margin-top:20px;">加入购物车</XtxButton>
         </div>
       </div>
       <!-- 商品推荐 -->
@@ -40,19 +43,26 @@
       <div class="goods-footer">
         <div class="goods-article">
           <!-- 商品+评价 -->
-          <div class="goods-tabs"></div>
+          <div class="goods-tabs">
+              <goods-tabs />
+          </div>
           <!-- 注意事项 -->
-          <div class="goods-warn"></div>
+          <div class="goods-warn">
+              <goods-warn />
+          </div>
         </div>
         <!-- 24热榜+专题推荐 -->
-        <div class="goods-aside"></div>
+        <div class="goods-aside">
+            <goods-hot :type="1"/>
+            <goods-hot :type="2"/>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, provide, ref } from 'vue'
 import { reqFindGoods } from '@/api/product.js'
 import GoodsRelevant from './components/goods-relevant'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
@@ -60,15 +70,67 @@ import GoodsImage from './components/goods-image.vue'
 import GoodsSales from './components/goods-sales.vue'
 import GoodsName from './components/goods-name.vue'
 import GoodsSku from './components/goods-sku.vue'
+import GoodsTabs from './components/goods-tabs.vue'
+import GoodsHot from './components/goods-hot.vue'
+import GoodsWarn from './components/goods-warn.vue'
 export default {
   name: 'Goods',
-  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku },
+  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot, GoodsWarn },
   setup () {
+    const changeSku = (sku) => {
+      // 修改商品的现价 / 原价信息
+      if (sku.skuId) {
+        goods.value.price = sku.price
+        goods.value.oldPrice = sku.oldPrice
+        goods.value.inventory = sku.inventory
+      }
+    }
+
+    /**
+     * 数字排序（数字和升序）：
+     * var points = [40,100,1,5,25,10];
+     * points.sort(function(a,b){return a-b});
+     * fruits输出结果：
+     * 1,5,10,25,40,100
+     */
+    /**
+     * 数字排序（数字和降序）：
+     * var points = [40,100,1,5,25,10];
+     * points.sort(function(a,b){return b-a});
+     * fruits输出结果：
+     * 100,40,25,10,5,1
+     */
+    const comparePrice = (prop) => {
+      return function (a, b) {
+        var value1 = a[prop]
+        var value2 = b[prop]
+        return value1 - value2
+      }
+    }
+
     // 1. 获取商品详情，进行渲染
     const { goods, loading } = useGoods()
+
+    // 获取价格最低的其中一件商品的skuId
+    const floorPriceId = computed(() => {
+      let skus = goods.value.skus
+      if (skus) {
+        skus = skus.sort(comparePrice('price'))[0].id
+      }
+      return skus
+    })
+
+    // 选择的数量
+    const count = ref(1)
+
+    // 提供 goods 数据给后代使用
+    provide('goods', goods)
     return {
       goods,
-      loading
+      loading,
+      changeSku,
+      floorPriceId,
+      count
     }
   }
 }
