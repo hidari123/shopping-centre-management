@@ -1,8 +1,46 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [商品详情](#%E5%95%86%E5%93%81%E8%AF%A6%E6%83%85)
+  - [基础布局](#%E5%9F%BA%E7%A1%80%E5%B8%83%E5%B1%80)
+  - [渲染面包屑](#%E6%B8%B2%E6%9F%93%E9%9D%A2%E5%8C%85%E5%B1%91)
+  - [图片预览组件](#%E5%9B%BE%E7%89%87%E9%A2%84%E8%A7%88%E7%BB%84%E4%BB%B6)
+  - [图片放大镜](#%E5%9B%BE%E7%89%87%E6%94%BE%E5%A4%A7%E9%95%9C)
+  - [基本信息展示](#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF%E5%B1%95%E7%A4%BA)
+  - [城市组件](#%E5%9F%8E%E5%B8%82%E7%BB%84%E4%BB%B6)
+    - [基础布局](#%E5%9F%BA%E7%A1%80%E5%B8%83%E5%B1%80-1)
+    - [获取数据](#%E8%8E%B7%E5%8F%96%E6%95%B0%E6%8D%AE)
+    - [交互逻辑](#%E4%BA%A4%E4%BA%92%E9%80%BB%E8%BE%91)
+  - [★规格组件](#%E2%98%85%E8%A7%84%E6%A0%BC%E7%BB%84%E4%BB%B6)
+    - [SKU&SPU概念](#skuspu%E6%A6%82%E5%BF%B5)
+    - [基础结构和样式](#%E5%9F%BA%E7%A1%80%E7%BB%93%E6%9E%84%E5%92%8C%E6%A0%B7%E5%BC%8F)
+    - [渲染与选中效果](#%E6%B8%B2%E6%9F%93%E4%B8%8E%E9%80%89%E4%B8%AD%E6%95%88%E6%9E%9C)
+    - [禁用效果](#%E7%A6%81%E7%94%A8%E6%95%88%E6%9E%9C)
+      - [思路分析](#%E6%80%9D%E8%B7%AF%E5%88%86%E6%9E%90)
+      - [路径字典](#%E8%B7%AF%E5%BE%84%E5%AD%97%E5%85%B8)
+      - [设置状态](#%E8%AE%BE%E7%BD%AE%E7%8A%B6%E6%80%81)
+      - [数据通讯](#%E6%95%B0%E6%8D%AE%E9%80%9A%E8%AE%AF)
+  - [数量选择组件](#%E6%95%B0%E9%87%8F%E9%80%89%E6%8B%A9%E7%BB%84%E4%BB%B6)
+  - [按钮组件](#%E6%8C%89%E9%92%AE%E7%BB%84%E4%BB%B6)
+  - [同类推荐组件](#%E5%90%8C%E7%B1%BB%E6%8E%A8%E8%8D%90%E7%BB%84%E4%BB%B6)
+  - [标签页组件](#%E6%A0%87%E7%AD%BE%E9%A1%B5%E7%BB%84%E4%BB%B6)
+  - [热榜组件](#%E7%83%AD%E6%A6%9C%E7%BB%84%E4%BB%B6)
+  - [详情组件](#%E8%AF%A6%E6%83%85%E7%BB%84%E4%BB%B6)
+  - [注意事项组件](#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E7%BB%84%E4%BB%B6)
+  - [评价组件](#%E8%AF%84%E4%BB%B7%E7%BB%84%E4%BB%B6)
+    - [头部渲染](#%E5%A4%B4%E9%83%A8%E6%B8%B2%E6%9F%93)
+    - [实现列表](#%E5%AE%9E%E7%8E%B0%E5%88%97%E8%A1%A8)
+    - [图片预览](#%E5%9B%BE%E7%89%87%E9%A2%84%E8%A7%88)
+    - [★分页组件](#%E2%98%85%E5%88%86%E9%A1%B5%E7%BB%84%E4%BB%B6)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 <!--
  * @Author: hidari
  * @Date: 2022-04-22 09:47:54
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-22 10:45:36
+ * @LastEditTime: 2022-04-24 09:50:22
  * @FilePath: \shopping-centre-management\markdown\GOODS.md
  * @Description: 
  * 
@@ -1149,7 +1187,7 @@ const currList = computed(() => {
 ```
 
 
-## 规格组件
+## ★规格组件
 
 ### SKU&SPU概念
 
@@ -1541,88 +1579,828 @@ skuId: {
 ```
 
 ```js
+// 默认选中
+const initDefaultSelected = (goods, skuId) => {
+  // 找出 sku 信息
+  const sku = goods.skus.find(sku => sku.id === skuId)
+  // 遍历每一个按钮，按钮的值和 sku 记录的值相同，则选中
+  goods.specs.forEach((item, i) => {
+    const val = item.values.find(val => val.name === sku.specs[i].valueName)
+    val.selected = true
+  })
+}
+```
+```diff
++    // 根据 skuId 初始化选中
++    if (props.skuId) {
++      initDefaultSelected(props.goods, props.skuId)
++   }
+```
+
+`src/views/goods/index.vue`
+```html
+<goods-sku :goods="goods" :skuId="floorPriceId" @change="changeSku"/>
+```
+
+```js
+    /**
+     * 数字排序（数字和升序）：
+     * var points = [40,100,1,5,25,10];
+     * points.sort(function(a,b){return a-b});
+     * fruits输出结果：
+     * 1,5,10,25,40,100
+     */
+    /**
+     * 数字排序（数字和降序）：
+     * var points = [40,100,1,5,25,10];
+     * points.sort(function(a,b){return b-a});
+     * fruits输出结果：
+     * 100,40,25,10,5,1
+     */
+    // 为了只传递prop属性 需要返回一个函数
+    // sort需要 return 升序/降序 所以函数体要有 return
+    const comparePrice = (prop) => {
+      return function (a, b) {
+        var value1 = a[prop]
+        var value2 = b[prop]
+        return value1 - value2
+      }
+    }
+
+    // 1. 获取商品详情，进行渲染
+    const { goods, loading } = useGoods()
+
+    // 获取价格最低的其中一件商品的skuId
+    const floorPriceId = computed(() => {
+      let skus = goods.value.skus
+      if (skus) {
+        skus = skus.sort(comparePrice('price'))[0].id
+      }
+      return skus
+    })
+```
 
 
+- 根据选择的完整sku规格传出sku信息
+    - 其中传出的specsText是提供给购物车存储使用的。
+
+`src/views/goods/components/goods-sku.vue`
+
+```diff
++  setup (props, { emit }) {
+```
+```js
+    // 选中与取消选中
+    // 约定每个按钮都有自己的选中状态数据 => selected
+    // 排他思想 点击已选中 => 取消选中 点击未选中 => 同一个规格的按钮改为未选中，当前选中
+    const changeSku = (item, val) => {
+        
+      ...
+
+      // 将选择的 sku 信息传递给父组件 { skuId, price, oldPrice, inventory, specsText}
+      // 选择完整的 sku 组合按钮 才可以拿到信息 传递给父组件
+      // 不是完整的 sku 组合按钮 提交空对象给父组件
+      // 遍历每一行时拿到当前选中的值的数组
+      // => 当前选中的数组 去掉无效值之后的数组
+      const validSelectedValues = getSelectedValues(props.goods.specs).filter(v => v)
+      if (validSelectedValues.length === props.goods.specs.length) {
+        // 选择完整
+        // 拿到信息 传递给父组件
+        const skuIds = pathMap[validSelectedValues.join(spliter)]
+        const sku = props.goods.skus.find(sku => sku.id === skuIds[0])
+        emit('change', {
+          skuId: sku.id,
+          price: sku.price,
+          oldPrice: sku.oldPrice,
+          inventory: sku.inventory,
+          /**
+           * reduce() 方法对数组中的每个元素执行一个由您提供的reduce函数(升序执行)，将其结果汇总为单个返回值。
+           * reduce方法可做的事情特别多，就是循环遍历能做的，reduce都可以做，比如数组求和、数组求积、数组中元素出现的次数、数组去重等等。
+           * /
+          /**
+           * arr.reduce(function(prev,cur,index,arr){
+           * ...
+           * }, init);
+           */
+          /**
+           * prev 必需。累计器累计回调的返回值; 表示上一次调用回调时的返回值，或者初始值 init;
+           * cur 必需。表示当前正在处理的数组元素；
+           * index 可选。表示当前正在处理的数组元素的索引，若提供 init 值，则起始索引为- 0，否则起始索引为1；
+           * arr 可选。表示原数组；
+           * init 可选。表示初始值。
+           */
+          /**
+           * 没有设置函数的初始迭代值
+           * const arr = [1,2,3,4,5];
+           * const sum = arr.reduce(function(prev,cur,index,arr){
+           *     return prev + cur;
+           * });
+           * console.log('sum:',sum);
+           * 结果 => sum: 15
+           * 分析：在这里reduce的作用就是对这个数组进行求和，迭代了4次，函数迭代的初始值是1，也就是默认值（数组的第一项），prev的值是每次计算后的值。
+           */
+          // 属性名：属性值 属性名2：属性值2 属性名3：属性值3... 这样的字符串
+          // 第一个是空字符串 要 trim() 去除
+          specsText: sku.specs.reduce((p, c) => `${p} ${c.name}: ${c.valueName}`, '').trim()
+        })
+      } else {
+        // 不是完整的 sku 组合按钮 提交空对象给父组件
+        // 让父组件判断是否选择完整，不完整不能加入购物车
+        emit('change', {})
+      }
+    }
+```
+
+`src/views/goods/index.vue`
+```js
+// 修改商品的现价 / 原价信息
+if (sku.skuId) {
+        goods.value.price = sku.price
+        goods.value.oldPrice = sku.oldPrice
+        goods.value.inventory = sku.inventory
+    }
+}
+```
 
 
+## 数量选择组件
 
+> 目的：封装一个通用的数量选中组件。
 
-### 04-商品详情-商品底部区块
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614068683436.ab5de278.png)
 
-> 目标：展示商品详情，展示每日热榜
+大致功能分析：
 
-大致步骤：
+- 默认值为1
+- 可限制最大最小值
+- 点击-就是减1 点击+就是加1
+- 需要完成v-model得实现
+- 存在无label情况
 
-- 底部组件准备和使用
-- 渲染组件
-
-
-
-落地代码：
-
-- 准备底部组件 `goods/components/goods-footer.vue`
+基础布局代码：`src/components/library/xtx-numbox.vue`
 
 ```vue
 <template>
-  <!-- 商品详情 -->
-  <div class="goods-footer">
-    <div class="left">
-      <div class="goods-detail">
-        <div class="head">商品详情</div>
-        <div class="content">
-          <img
-            src="https://yanxuan-item.nosdn.127.net/38e2952b2ad8ce881860e0416b07d6ce.jpg"
-            alt=""
-          />
-        </div>
-      </div>
-    </div>
-    <div class="right">
-      <div class="goods-hot">
-        <h3>每日热榜</h3>
-        <GoodsItem v-for="item in 4" :key="item" />
-      </div>
+  <div class="xtx-numbox">
+    <div class="label">数量</div>
+    <div class="numbox">
+      <a href="javascript:;">-</a>
+      <input type="text" readonly value="1">
+      <a href="javascript:;">+</a>
     </div>
   </div>
 </template>
 <script>
 export default {
-  name: "GoodsFooter",
-};
-</script>
-<style lang="less" scoped>
-.goods-footer {
-  display: flex;
-  margin-top: 20px;
-  .left {
-    width: 940px;
-    margin-right: 20px;
-  }
-  .right {
-    width: 280px;
-    min-height: 1000px;
-  }
+  name: 'XtxNumbox'
 }
-.goods-detail {
-  background: #fff;
-  .head {
-    height: 70px;
-    line-height: 70px;
-    font-size: 18px;
-    padding: 0 40px;
-    border-bottom: 1px solid #f5f5f5;
+</script>
+<style scoped lang="less">
+.xtx-numbox {
+  display: flex;
+  align-items: center;
+  .label {
+    width: 60px;
+    color: #999;
+    padding-left: 10px;
   }
-  .content {
-    padding: 40px;
-    img {
-      width: 100%;
+  .numbox {
+    width: 120px;
+    height: 30px;
+    border: 1px solid #e4e4e4;
+    display: flex;
+    > a {
+      width: 29px;
+      line-height: 28px;
+      text-align: center;
+      background: #f8f8f8;
+      font-size: 16px;
+      color: #666;
+      &:first-of-type {
+        border-right:1px solid #e4e4e4;
+      }
+      &:last-of-type {
+        border-left:1px solid #e4e4e4;
+      }
+    }
+    > input {
+      width: 60px;
+      padding: 0 5px;
+      text-align: center;
+      color: #666;
     }
   }
 }
+</style>
+```
+
+逻辑功能实现：双向绑定 v-model 父子传值
+
+`src/components/library/xtx-numbox.vue`
+
+```vue
+<template>
+  <div class="xtx-numbox">
+    <div class="label" v-if="label">{{label}}</div>
+    <div class="numbox">
+      <a @click="changeNum(-1)" href="javascript:;">-</a>
+      <input type="text" readonly :value="num">
+      <a @click="changeNum(1)" href="javascript:;">+</a>
+    </div>
+  </div>
+</template>
+<script>
+import { ref } from '@vue/reactivity'
+import { watch } from 'vue'
+// import { useVModel } from '@vueuse/core'
+export default {
+  name: 'XtxNumbox',
+  props: {
+    label: {
+      type: String,
+      default: ''
+    },
+    modelValue: {
+      type: Number,
+      default: 1
+    },
+    min: {
+      type: Number,
+      default: 1
+    },
+    max: {
+      type: Number,
+      default: 100
+    }
+  },
+  //   setup (props, { emit }) {
+  //     const num = useVModel(props, 'modelValue', emit)
+  //     const changeNum = (value) => {
+  //       const newValue = num.value + value
+  //       if (newValue < props.min) return
+  //       if (newValue > props.max) return
+  //       num.value = newValue
+  //       emit('change', newValue)
+  //     }
+  //     return { num, changeNum }
+  //   }
+  setup (props, { emit }) {
+    // input初始化
+    const num = ref(props.modelValue)
+
+    // 使用侦听器 得到父组件传递数据 给 num 传递数据
+    watch(() => props.modelValue, () => {
+      num.value = props.modelValue
+    }, {
+      immediate: true
+    })
+
+    // 绑定按钮点击事件
+    // 数据双向绑定
+    const changeNum = (step) => {
+      // 使用 emit 通知父组件 num 增减
+      const newNum = num.value + step
+      if (newNum < props.min) return
+      if (newNum > props.max) return
+      num.value = newNum
+      emit('update:modelValue', num.value)
+    }
+
+    return {
+      changeNum,
+      num
+    }
+  }
+}
+</script>
+```
+
+`src/views/goods/index.vue`
+```html
+<XtxNumbox label="数量" v-model="num" :max="goods.inventory"/>
+```
+```diff
+// 选择的数量
++    const num = ref(1)
++    return { goods, changeSku, num }
+```
+
+## 按钮组件
+
+> 目的：封装一个通用按钮组件，有大、中、小、超小四种尺寸，有默认、主要、次要、灰色四种类型。
+
+大致步骤：
+
+- 完成组件基本结构
+- 介绍各个参数的使用
+- 测试按钮组件
+
+落地代码：
+
+封装组件：`src/components/library/xtx-numbox.vue`
+
+```vue
+<template>
+  <button class="xtx-button ellipsis" :class="[size,type]">
+    <slot />
+  </button>
+</template>
+<script>
+export default {
+  name: 'XtxButton',
+  props: {
+    size: {
+      type: String,
+      default: 'middle'
+    },
+    type: {
+      type: String,
+      default: 'default'
+    }
+  }
+}
+</script>
+<style scoped lang="less">
+.xtx-button {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: #fff;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.large {
+  width: 240px;
+  height: 50px;
+  font-size: 16px;
+}
+.middle {
+  width: 180px;
+  height: 50px;
+  font-size: 16px;
+}
+.small {
+  width: 100px;
+  height: 32px;
+  font-size: 14px;  
+}
+.mini {
+  width: 60px;
+  height: 32px;
+  font-size: 14px;  
+}
+.default {
+  border-color: #e4e4e4;
+  color: #666;
+}
+.primary {
+  border-color: @xtxColor;
+  background: @xtxColor;
+  color: #fff;
+}
+.plain {
+  border-color: @xtxColor;
+  color: @xtxColor;
+  background: lighten(@xtxColor,50%);
+}
+.gray {
+  border-color: #ccc;
+  background: #ccc;;
+  color: #fff;
+}
+</style>
+```
+
+- 使用组件：`src/views/goods/index.vue`
+```
+    <div class="spec">
+        <GoodsName :goods="goods"/>
+        <GoodsSku :goods="goods" @change="changeSku"/>
+        <XtxNumbox label="数量" v-model="num" :max="goods.inventory"/>
++        <XtxButton type="primary" style="margin-top:20px;">加入购物车</XtxButton>
+    </div>
+```
+
+
+## 同类推荐组件
+
+> 目的：实现商品的同类推荐与猜你喜欢展示功能。
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614068706805.373c8315.png)
+
+大致功能需求：
+
+- 完成基础布局（头部），后期改造xtx-carousel.vue组件来展示商品效果。
+- 然后可以通过是否传入商品ID来区别同类推荐和猜你喜欢。
+
+落地代码：
+
+基础布局 `src/views/goods/components/goods-relevant.vue`
+```vue
+<template>
+  <div class="goods-relevant">
+    <div class="header">
+      <i class="icon" />
+      <span class="title">同类商品推荐</span>
+    </div>
+    <!-- 此处使用改造后的xtx-carousel.vue -->
+  </div>
+</template>
+
+<script>
+export default {
+  // 同类推荐，猜你喜欢
+  name: 'GoodsRelevant'
+}
+</script>
+
+<style scoped lang='less'>
+.goods-relevant {
+  background: #fff;
+  min-height: 460px;
+  margin-top: 20px;
+  .header {
+    height: 80px;
+    line-height: 80px;
+    padding: 0 20px;
+    .title {
+      font-size: 20px;
+      padding-left: 10px;
+    }
+    .icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      border-top: 4px solid @xtxColor;
+      border-right: 4px solid @xtxColor;
+      box-sizing: border-box;
+      position: relative;
+      transform: rotate(45deg);
+      &::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        left: 0;
+        top: 2px;
+        background: lighten(@xtxColor, 40%);
+      }
+    }
+  }
+}
+</style>
+```
+
+- 获取数据传入xtx-carousel.vue组件
+`src/views/goods/index.vue` 传ID
+```html
+<!-- 商品推荐 -->
+<GoodsRelevant :goodsId="goods.id"/>
+```
+
+`src/api/product.js.js` 定义获取数据的API
+```js
+/**
+ * 获取商品同类推荐-未传入ID为猜你喜欢
+ * @param {String} id - 商品ID
+ * @param {Number} limit - 获取条数
+ * 用对象形式传参,可以不强制顺序
+ */
+export const reqFindRelGoods = ({ id, limit = 16 }) => request('/goods/relevant', 'get', { id, limit })
+```
+
+`src/views/goods/components/goods-relevant.vue` 获取数据
+
+```diff
+    <div class="header">
+      <i class="icon" />
++      <span class="title">{{goodsId?'同类商品推荐':'猜你喜欢'}}</span>
+    </div>
+```
+
+```js
+import { ref } from '@vue/reactivity'
+import { reqFindRelGoods } from '@/api/product'
+export default {
+  // 同类推荐，猜你喜欢
+  name: 'GoodsRelevant',
+  props: {
+    goodsId: {
+      type: String,
+      default: ''
+    }
+  },
+  setup (props) {
+    // 最终需要的数据是 sliders 提供给轮播图使用
+    // 数据结构: sliders = [[4],[4],[4],[4]]
+    const sliders = ref([])
+    reqFindRelGoods({ id: props.goodsId }).then(data => {
+      // data.result 商品列表 数据结构 [16个]
+      // 将 data.result 赋值给 sliders 保持数据结构
+      const pageSize = 4
+      // 向上取整
+      const pageCount = Math.ceil(data.result.length / pageSize)
+      for (let i = 0; i < pageCount; i++) {
+        // 4 个一组 push 到 sliders 中
+        sliders.value.push(data.result.slice(pageSize * i, pageSize * (i + 1)))
+      }
+    })
+    console.log(sliders)
+    return {
+      sliders
+    }
+  }
+
+}
+```
+```html
+<!-- 此处使用改造后的xtx-carousel.vue -->
+<XtxCarousel :sliders="sliders" style="height:380px" auto-play />
+```
+
+- 改造xtx-carousel.vue组件 `src/components/library/xtx-carousel.vue`
+
+```diff
++        <RouterLink v-if="item.hrefUrl" :to="item.hrefUrl">
+          <img :src="item.imgUrl" alt="">
+        </RouterLink>
++        <div v-else class="slider">
++          <RouterLink v-for="goods in item" :key="goods.id" :to="`/product/${goods.id}`">
++            <img :src="goods.picture" alt="">
++            <p class="name ellipsis">{{goods.name}}</p>
++            <p class="price">&yen;{{goods.price}}</p>
++          </RouterLink>
+```
+
+```less
+// 轮播商品
+.slider {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 40px;
+  > a {
+    width: 240px;
+    text-align: center;
+    img {
+      padding: 20px;
+      width: 230px!important;
+      height: 230px!important;
+    }
+    .name {
+      font-size: 16px;
+      color: #666;
+      padding: 0 40px;
+    }
+    .price {
+      font-size: 16px;
+      color: @priceColor;
+      margin-top: 15px;
+    }
+  }
+}
+```
+
+- 覆盖xtx-carousel.vue的样式在 `src/views/goods/components/goods-relevant.vue`
+
+```less
+:deep(.xtx-carousel) {
+  height: 380px;
+  .carousel {
+    &-indicator {
+      bottom: 30px;
+      span {
+        &.active {
+          background: @xtxColor;
+        }
+      }
+    }
+    &-btn {
+      top: 110px;
+      opacity: 1;
+      background: rgba(0,0,0,0);
+      color: #ddd;
+      i {
+        font-size: 30px;
+      }
+    }
+  }
+}
+```
+
+**注意：**vue3.0使用深度作用选择器写法 `:deep(选择器)`
+
+
+## 标签页组件
+
+> 目的：实现商品详情组件和商品评价组件的切换
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614068786756.e885091c.png)
+
+大致步骤：
+
+- 完成基础的tab的导航布局
+- 完成tab标签页的切换样式效果
+- 使用动态组件完成可切换 详情 和 评论 组件
+
+落地代码：
+
+标签页基础布局 `src/vies/goods/components/goods-tabs.vue`
+
+```html
+<div class="goods-tabs">
+    <nav>
+        <a class="active" href="javascript:;">商品详情</a>
+        <a href="javascript:;">商品评价<span>(500+)</span></a>
+    </nav>
+    <!-- 切换内容的地方 -->  
+</div>     
+```
+
+```less
+.goods-tabs {
+  min-height: 600px;
+  background: #fff;
+  nav {
+    height: 70px;
+    line-height: 70px;
+    display: flex;
+    border-bottom: 1px solid #f5f5f5;
+    a {
+      padding: 0 40px;
+      font-size: 18px;
+      position: relative;
+      > span {
+        color: @priceColor;
+        font-size: 16px;
+        margin-left: 10px;
+      }
+      &:first-child {
+        border-right: 1px solid #f5f5f5;
+      }
+      &.active {
+        &::before {
+          content: "";
+          position: absolute;
+          left: 40px;
+          bottom: -1px;
+          width: 72px;
+          height: 2px;
+          background: @xtxColor;
+        }
+      }
+    }
+  }
+}
+```
+
+- tabs组件切换 `src/vies/goods/components/goods-tabs.vue`
+
+```vue
+<template>
+  <div class="goods-tabs">
+    <nav>
+      <a @click="activeName = 'GoodsDetail'" :class="{active: activeName === 'GoodsDetail'}" href="javascript:;">商品详情</a>
+      <a @click="activeName = 'GoodsComment'" :class="{active: activeName === 'GoodsComment'}" href="javascript:;">商品评价<span>({{goods.commentCount}})</span></a>
+    </nav>
+    <!-- 切换内容的地方 -->
+    <!-- 动态切换组件 => component 组件-->
+    <!-- is 属性用来决定 component 组件应该渲染为哪个组件 写组件名称 -->
+    <component :is="activeName"></component>
+  </div>
+</template>
+
+<script>
+import { ref } from '@vue/reactivity'
+import GoodsComment from './goods-comment.vue'
+import GoodsDetail from './goods-detail.vue'
+import { inject } from '@vue/runtime-core'
+export default {
+  components: { GoodsComment, GoodsDetail },
+  name: 'GoodsTabs',
+  setup () {
+    // detail-->详情   comment-->评价
+    const activeName = ref('GoodsDetail')
+    // goods 详情数据
+    const goods = inject('goods')
+    return {
+      activeName,
+      goods
+    }
+  }
+}
+</script>
+```
+
+- 使用tabs组件 `src/views/goods/index.vue`
+
+```diff
++import GoodsTabs from './components/goods-tabs'
+// ... 省略
+export default {
+  name: 'XtxGoodsPage',
++  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs },
+  setup () {
+```
+```diff
+        <div class="goods-article">
+          <!-- 商品+评价 -->
++          <GoodsTabs :goods="goods" />
+          <!-- 注意事项 -->
+          <div class="goods-warn"></div>
+        </div>
+```
+```diff
+-.goods-tabs {
+-  min-height: 600px;
+-  background: #fff;
+-}
+```
+
+- 定义详情组件，评价组件。
+
+`src/vies/goods/components/goods-detail.vue`
+
+```vue
+<template>
+  <div class="goods-detail">详情</div>
+</template>
+<script>
+export default {
+  name: 'GoodsDetail'
+}
+</script>
+<style scoped lang="less"></style>
+```
+
+`src/vies/goods/components/goods-comment.vue`
+
+```vue
+<template>
+  <div class="goods-comment">评价</div>
+</template>
+<script>
+export default {
+  name: 'GoodsComment'
+}
+</script>
+<style scoped lang="less"></style>
+```
+
+## 热榜组件
+
+> 目的：展示24小时热榜商品，和周热榜商品。
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614068763230.d03882be.png)
+
+大致步骤：
+
+- 定义一个组件，完成多个组件展现型态，根据传入组件的类型决定。
+- 1代表24小时热销榜 2代表周热销榜 3代表总热销榜
+- 获取数据，完成商品展示和标题样式的设置。
+
+落地代码：
+
+定义组件 `src/views/goods/components/goods-hot.vue`
+```vue
+<template>
+  <div class="goods-hot">
+    <h3>{{title}}</h3>
+  </div>
+</template>
+<script>
+import { computed, ref } from 'vue'
+import GoodsItem from '../../category/components/goods-item'
+export default {
+  name: 'GoodsHot',
+  components: { GoodsItem },
+  props: {
+    // 热榜类型
+    type: {
+      type: Number,
+      default: 1
+    }
+  },
+  setup (props) {
+    // 处理标题
+    // 类型数据字典
+    const titleObj = { 1: '24小时热销榜', 2: '周热销榜', 3: '总热销榜' }
+    const title = computed(() => {
+      return titleObj[props.type]
+    })
+
+    return {
+      title
+    }
+  }
+}
+</script>
+<style scoped lang="less">
 .goods-hot {
   h3 {
     height: 70px;
-    background: var(--help-color);
+    background: @helpColor;
     color: #fff;
     font-size: 18px;
     line-height: 70px;
@@ -1630,7 +2408,7 @@ export default {
     margin-bottom: 10px;
     font-weight: normal;
   }
-  ::v-deep .goods-item {
+  :depp(.goods-item) {
     background: #fff;
     width: 100%;
     margin-bottom: 10px;
@@ -1646,71 +2424,1089 @@ export default {
       box-shadow: none;
     }
   }
+}</style>
+```
+
+使用组件 `src/views/goods/index.vue`
+```diff
++import GoodsHot from './components/goods-hot'
+// ... 省略
+  name: 'XtxGoodsPage',
++  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot },
+  setup () {
+```
+```html
+<!-- 24热榜+专题推荐 -->
+<div class="goods-aside">
+    <GoodsHot :goodsId="goods.id" :type="1" />
+    <GoodsHot :goodsId="goods.id" :type="2" />
+</div>
+```
+
+获取数据，设置组件样式
+`src/api/product.js`
+```js
+/**
+ * 获取热榜商品
+ * @param {Number} type - 1代表24小时热销榜 2代表周热销榜 3代表总热销榜
+ * @param {Number} limit - 获取个数
+ */
+export const findHotGoods = ({id,type, limit = 3}) => {
+  return request('/goods/hot', 'get', {id, type, limit })
 }
-</style>
-
 ```
 
-`goods/index.vue`
-
-```diff
-+      <!-- 商品底部 -->
-+      <GoodsFooter :goods="goods" />
-    </div>
-  </div>
-</template>
-```
-
-```diff
-+import GoodsFooter from "./components/goods-footer.vue";
-export default {
-  name: "xtx-goods-page",
-+  components: { GoodsSales, GoodsInfo, GoodsFooter },
-```
-
-
-
-- 渲染组件
+`src/views/goods/components/goot-hot.vue`
 
 ```vue
 <template>
-  <!-- 商品详情 -->
-  <div class="goods-footer">
-    <div class="left">
-      <div class="goods-detail">
-        <div class="head">商品详情</div>
-        <div class="content">
-          <img v-for="(img, i) in goods.details.pictures" :src="img" :key="i" />
-        </div>
-      </div>
-    </div>
-    <div class="right">
-      <div class="goods-hot">
-        <h3>每日热榜</h3>
-        <GoodsItem
-          v-for="item in goods.hotByDay"
-          :key="item.id"
-          :goods="item"
-        />
-      </div>
+  <div class="goods-hot">
+    <h3>{{title}}</h3>
+    <div v-if="goodsList">
+      <GoodsItem v-for="item in goodsList" :key="item.id" :goods="item"/>
     </div>
   </div>
 </template>
 <script>
-export default {
-  name: "GoodsFooter",
+import { computed, ref } from 'vue'
+import GoodsItem from '../../category/components/goods-item'
+import { reqFindHotGoods } from '@/api/product'
+import { useRoute } from 'vue-router'
+export default {s
+  name: 'GoodsHot',
+  components: { GoodsItem },
   props: {
-    goods: {
-      type: Object,
-      default: () => ({}),
-    },
+    // 热榜类型
+    type: {
+      type: Number,
+      default: 1
+    }
   },
-};
+  setup (props) {
+    // 处理标题
+    // 类型数据字典
+    const titleObj = { 1: '24小时热销榜', 2: '周热销榜', 3: '总热销榜' }
+    const title = computed(() => {
+      return titleObj[props.type]
+    })
+
+    // 商品列表
+    const goodsList = ref([])
+    const route = useRoute()
+    // 发请求获取数据
+    reqFindHotGoods({ id: route.params.id, type: props.type }).then(data => {
+      goodsList.value = data.result
+    })
+    return {
+      title,
+      goodsList
+    }
+  }
+}
 </script>
+<style scoped lang="less">
+.goods-hot {
+  h3 {
+    height: 70px;
+    background: @helpColor;
+    color: #fff;
+    font-size: 18px;
+    line-height: 70px;
+    padding-left: 25px;
+    margin-bottom: 10px;
+    font-weight: normal;
+  }
+  :depp(.goods-item) {
+    background: #fff;
+    width: 100%;
+    margin-bottom: 10px;
+    img {
+      width: 200px;
+      height: 200px;
+    }
+    p {
+      margin: 0 10px;
+    }
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}</style>
 ```
 
 
+## 详情组件
+
+> 目的：展示商品属性和商品详情。
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614069259289.87b45805.png)
+
+大致步骤：
+
+- 完成基础布局，主要是属性，详情是图片。
+- `goods/index.vue` 提供goods数据，子孙组件注入goods数据，渲染展示即可。
+
+落地代码：
+
+祖辈组件传递goods数据
+`src/views/goods/index.vue` setup中提供数据
+
+```js
+provide('goods', goods)
+```
+
+- 使用goods数据，展示评价数量
+`src/views/goods/components/goods-tabs.vue`
+
+```js
+  setup () {
+      const goods = inject('goods')
+      return { goods }
+  }
+```
+
+```diff
++    >商品评价<span>({{goods.commentCount}})</span></a
+```
+
+- 使用goods数据，展示商品详情
+`src/views/goods/components/goods-detail.vue`
+
+```vue
+<template>
+  <div class="goods-detail">
+    <!-- 属性 -->
+    <ul class="attrs">
+      <li v-for="item in goods.details.properties" :key="item.value">
+        <span class="dt">{{item.name}}</span>
+        <span class="dd">{{item.value}}</span>
+      </li>
+    </ul>
+    <!-- 图片 -->
+    <img v-for="(img, i) in goods.details.pictures" :src="img" :key="i" />
+  </div>
+</template>
+<script>
+export default {
+  name: 'GoodsDetail',
+  setup () {
+      const goods = inject('goods')
+      return { goods }
+  }
+}
+</script>
+<style scoped lang="less">
+.goods-detail {
+  padding: 40px;
+  .attrs {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    li {
+      display: flex;
+      margin-bottom: 10px;
+      width: 50%;
+      .dt {
+        width: 100px;
+        color: #999;
+      }
+      .dd {
+        flex: 1;
+        color: #666;
+      }
+    }
+  }
+  > img {
+    width: 100%;
+  }
+}
+</style>
+```
 
 **总结：**
 
 - 商品的图片一般是分割开，拼在一起
+
+
+
+## 注意事项组件
+
+> 目的：展示购买商品的注意事项。
+
+`src/views/goods/index.vue`
+
+```diff
++import GoodsWarn from './components/goods-warn'
+```
+```diff
+  name: 'XtxGoodsPage',
++  components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot, GoodsWarn },
+  setup () {
+```
+```diff
+          <!-- 注意事项 -->
++          <GoodsWarn />
+```
+
+`src/views/goods/components/goods-warn.vue`
+
+```vue
+<template>
+  <!-- 注意事项 -->
+  <div class="goods-warn">
+    <h3>注意事项</h3>
+    <p class="tit">• 购买运费如何收取？</p>
+    <p>
+      单笔订单金额(不含运费)满88元免邮费；不满88元，每单收取10元运费。（港澳台地区需满500元免邮费；不满500元，每单收取30元运费)
+    </p>
+    <br />
+    <p class="tit">• 使用什么快递发货?</p>
+    <p>默认使用顺丰快递发货(个别商品使用其他快递）</p>
+    <p>配送范围覆盖全国大部分地区(港澳台地区除外）</p>
+    <br />
+    <p class="tit">• 如何申请退货?</p>
+    <p>
+      1.自收到商品之日起30日内，顾客可申请无忧退货，退款将原路返还，不同的银行处理时间不同，预计1-5个工作日到账；
+    </p>
+    <p>2.内裤和食品等特殊商品无质量问题不支持退货；</p>
+    <p>
+      3.退货流程：
+      确认收货-申请退货-客服审核通过-用户寄回商品-仓库签收验货-退款审核-退款完成；
+    </p>
+    <p>
+      4.因小兔鲜儿产生的退货，如质量问题，退货邮费由小兔鲜儿承担，退款完成后会以现金券的形式报销。因客户个人原因产生的退货，购买和寄回运费由客户个人承担。
+    </p>
+  </div>
+</template>
+<style lang="less" scoped>
+.goods-warn {
+  margin-top: 20px;
+  background: #fff;
+  padding-bottom: 40px;
+  h3 {
+    height: 70px;
+    line-height: 70px;
+    border-bottom: 1px solid #f5f5f5;
+    padding-left: 50px;
+    font-size: 18px;
+    font-weight: normal;
+    margin-bottom: 10px;
+  }
+  p {
+    line-height: 40px;
+    padding: 0 25px;
+    color: #666;
+    &.tit {
+      color: #333;
+    }
+  }
+}
+</style>
+```
+
+
+## 评价组件
+
+### 头部渲染
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614132765458.2085ed7b.png)
+
+> 目的：根据后台返回的评价信息渲染评价头部内容。
+
+`yapi` 平台可提供模拟接口，当后台接口未开发完毕或者没有数据的情况下，可以支持前端的开发。
+
+大致步骤：
+
+- 完成静态布局
+- 定义API接口
+- 获取数据，处理完毕，提供给模版
+- 渲染模版
+
+落地代码：
+
+布局 `src/views/goods/components/goods-comment.vue`
+
+```vue
+<template>
+  <div class="goods-comment">
+    <div class="head">
+      <div class="data">
+        <p><span>100</span><span>人购买</span></p>
+        <p><span>99.99%</span><span>好评率</span></p>
+      </div>
+      <div class="tags">
+        <div class="dt">大家都在说：</div>
+        <div class="dd">
+          <a href="javascript:;" class="active">全部评价（1000）</a>
+          <a href="javascript:;">好吃（1000）</a>
+          <a href="javascript:;">便宜（1000）</a>
+          <a href="javascript:;">很好（1000）</a>
+          <a href="javascript:;">再来一次（1000）</a>
+          <a href="javascript:;">快递棒（1000）</a>
+        </div>
+      </div>
+    </div>
+    <div class="sort">
+      <span>排序：</span>
+      <a href="javascript:;" class="active">默认</a>
+      <a href="javascript:;">最新</a>
+      <a href="javascript:;">最热</a>
+    </div>
+    <div class="list"></div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'GoodsComment'
+}
+</script>
+<style scoped lang="less">
+.goods-comment {
+  .head {
+    display: flex;
+    padding: 30px 0;
+    .data {
+      width: 340px;
+      display: flex;
+      padding: 20px;
+      p {
+        flex: 1;
+        text-align: center;
+        span {
+          display: block;
+          &:first-child {
+            font-size: 32px;
+            color: @priceColor;
+          }
+          &:last-child {
+            color: #999;
+          }
+        }
+      }
+    }
+    .tags {
+      flex: 1;
+      display: flex;
+      border-left: 1px solid #f5f5f5;
+      .dt {
+        font-weight: bold;
+        width: 100px;
+        text-align: right;
+        line-height: 42px;
+      }
+      .dd {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        > a {
+          width: 132px;
+          height: 42px;
+          margin-left: 20px;
+          margin-bottom: 20px;
+          border-radius: 4px;
+          border: 1px solid #e4e4e4;
+          background: #f5f5f5;
+          color: #999;
+          text-align: center;
+          line-height: 40px;
+          &:hover {
+            border-color: @xtxColor;
+            background: lighten(@xtxColor,50%);
+            color: @xtxColor;
+          }
+          &.active {
+            border-color: @xtxColor;
+            background: @xtxColor;
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+  .sort {
+    height: 60px;
+    line-height: 60px;
+    border-top: 1px solid #f5f5f5;
+    border-bottom: 1px solid #f5f5f5;
+    margin: 0 20px;
+    color: #666;
+    > span {
+      margin-left: 20px;
+    }
+    > a {
+      margin-left: 30px;
+      &.active,&:hover {
+        color: @xtxColor;
+      }
+    }
+  }
+}
+</style>
+```
+
+- 接口 `src/api/product.js`
+```js
+/**
+ * 获取商品的评价统计信息
+ * @param {String} id - 商品ID
+ */
+// axios 遇到 http 开头的地址 不会加上基准地址
+export const reqFindCommentInfoByGoods = (id) => request(`https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate`, 'get')
+
+// https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate
+// /goods/${id}/evaluate
+```
+
+- 获取数据，处理数据 `src/views/goods/components/goods-comment.vue`
+
+```js
+// 获取评论信息
+const commentInfo = ref(null)
+const goods = inject('goods')
+reqFindCommentInfoByGoods(goods.value.id).then(data => {
+    // 设置数据之前 tags 数据前追加 有图 tag 全部评价 tag
+    // type 的目的是将来点击可以区分点的是不是标签
+    data.result.tags.unshift({
+    title: '有图',
+    tagCount: data.result.hasPictureCount,
+    type: 'img'
+    })
+    data.result.tags.unshift({
+    title: '全部评价',
+    tagCount: data.result.evaluateCount,
+    type: 'all'
+    })
+    commentInfo.value = data.result
+})
+```
+
+- 渲染模版 + tag选中效果 `src/views/goods/components/goods-comment.vue`
+
+```vue
+<template>
+    <!-- 头部 -->
+    <div class="head" v-if="commentInfo">
+      <div class="data">
+        <p><span>{{commentInfo.salesCount}}</span><span>人购买</span></p>
+        <p><span>{{commentInfo.praisePercent}}</span><span>好评率</span></p>
+      </div>
+      <div class="tags">
+        <div class="dt">大家都在说：</div>
+        <div class="dd">
+          <a
+            v-for="(item,i) in commentInfo.tags"
+            :key="item.title"
+            href="javascript:;"
+            :class="{active:currTagIndex===i}"
+            @click="changeTag(i)"
+          >
+            {{item.title}}（{{item.tagCount}}）
+          </a>
+        </div>
+      </div>
+    </div>
+    <!-- 排序 -->
+    <div class="sort" v-if="commentInfo">
+</template>
+```
+```js
+// 记录当前激活的索引
+const currTagIndex = ref(0)
+const changeTag = (i) => {
+    currTagIndex.value = i
+}
+```
+
+
+### 实现列表
+
+> 目的：完成列表渲染，筛选和排序。
+
+大致步骤：
+
+- 列表基础布局
+- 筛选条件数据准备
+- 何时去获取数据？
+    - 组件初始化
+    - 点标签
+    - 点排序
+- 渲染列表
+
+落地代码：
+
+- 列表基础布局
+
+```html
+    <!-- 列表 -->
+    <div class="list">
+      <div class="item">
+        <div class="user">
+          <img src="http://zhoushugang.gitee.io/erabbit-client-pc-static/uploads/avatar_1.png" alt="">
+          <span>兔****m</span>
+        </div>
+        <div class="body">
+          <div class="score">
+            <i class="iconfont icon-wjx01"></i>
+            <i class="iconfont icon-wjx01"></i>
+            <i class="iconfont icon-wjx01"></i>
+            <i class="iconfont icon-wjx01"></i>
+            <i class="iconfont icon-wjx02"></i>
+            <span class="attr">颜色：黑色 尺码：M</span>
+          </div>
+          <div class="text">网易云app上这款耳机非常不错 新人下载网易云购买这款耳机优惠大 而且耳机🎧确实正品 音质特别好 戴上这款耳机 听音乐看电影效果声音真是太棒了 无线方便 小盒自动充电 最主要是质量好音质棒 想要买耳机的放心拍 音效巴巴滴 老棒了</div>
+          <div class="time">
+            <span>2020-10-10 10:11:22</span>
+            <span class="zan"><i class="iconfont icon-dianzan"></i>100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+```
+
+```less
+  .list {
+    padding: 0 20px;
+    .item {
+      display: flex;
+      padding: 25px 10px;
+      border-bottom: 1px solid #f5f5f5;
+      .user {
+        width: 160px;
+        img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          overflow: hidden;
+        }
+        span {
+          padding-left: 10px;
+          color: #666;
+        }
+      }
+      .body {
+        flex: 1;
+        .score {
+          line-height: 40px;
+          .iconfont {
+            color: #ff9240;
+            padding-right: 3px;
+          }
+          .attr {
+            padding-left: 10px;
+            color: #666;
+          }
+        }
+      }
+      .text {
+        color: #666;
+        line-height: 24px;
+      }
+      .time {
+        color: #999;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+      }
+    }
+  }
+```
+
+- 筛选条件数据准备
+    - 定义筛选条件
+```js
+    // 准备筛选条件数据
+    const reqParams = reactive({
+      page: 1,
+      pageSize: 10,
+      hasPicture: null,
+      tag: null,
+      // 排序方式两个可选字段 praiseCount 热度 createTime 最新
+      sortField: null
+    })
+```
+
+- 收集排序条件
+
+```vue
+<template>
+    <!-- 排序 -->
+    <div class="sort">
+    <span>排序：</span>
+    <a
+        @click="changeSort(null)"
+        href="javascript:;"
+        :class="{active:reqParams.sortField===null}"
+    >默认</a>
+    <a
+        @click="changeSort('praiseCount')"
+        href="javascript:;"
+        :class="{active:reqParams.sortField==='praiseCount'}"
+    >最热</a>
+    <a
+        @click="changeSort('createTime')"
+        href="javascript:;"
+        :class="{active:reqParams.sortField==='createTime'}"
+    >最新</a>
+    </div>
+</template>
+```
+```js
+    // 改变排序
+    const changeSort = (type) => {
+      reqParams.sortField = type
+      // 页码重置为 1
+      reqParams.page = 1
+    }
+```
+
+- 收集标签和是否有图条件
+```js
+    // 激活 tag
+    const currTagIndex = ref(0)
+    const changeTag = (i) => {
+      currTagIndex.value = i
+      // 点击 tag 修改筛选条件
+      const tag = commentInfo.value.tags[i]
+      if (tag.type === 'all') {
+        // 情况1：全部评价
+        reqParams.hasPicture = null
+        reqParams.tag = null
+      } else if (tag.type === 'img') {
+      // 情况2：有图
+        reqParams.hasPicture = true
+        reqParams.tag = null
+      } else {
+      // 情况3：正常 tag
+        reqParams.hasPicture = null
+        reqParams.tag = tag.title
+      }
+      // 页码重置为 1
+      reqParams.page = 1
+    }
+```
+
+- 获取数据（当组件初始化的时候，筛选条件改变的时候）
+```js
+    // 初始化 / 筛选条件发生变化 需要发送请求
+    const commentList = ref([])
+    watch(reqParams, async () => {
+      const res = await reqFindCommentInfoList(goods.id, reqParams)
+      commentList.value = res.result.items
+    }, {
+      immediate: true
+    })
+```
+
+- 渲染模版
+    - 处理数据，昵称加*号，规格拼接字符串。
+```js
+    // 定义转换数据的函数 对应 vue2 中的过滤器（vue3废除过滤器）
+    // reduce 拼接属性
+    const formatSpecs = (specs) => {
+      return specs.reduce((p, c) => `${p} ${c.name}：${c.nameValue}`, '').trim()
+    }
+    // 名称匿名化
+    /**
+     * substr() 方法
+     * 语法 string.substr(start,length)
+     *
+     * 参数值
+     * @start 必需。要抽取的子串的起始下标。必须是数值。如果是负数，那么该参数声明从字符串的尾部开始算起的位置。也就是说，-1 指字符串中最后一个字符，-2 指倒数第二个字符，以此类推。
+     * @length 可选。子串中的字符数。必须是数值。如果省略了该参数，那么返回从 stringObject 的开始位置到结尾的字串。
+     */
+    const formatNickname = (nickname) => {
+      return nickname.substr(0, 1) + '****' + nickname.substr(-1)
+    }
+```
+
+- 渲染html
+```vue
+<template>
+  <!-- 列表 -->
+    <div class="list">
+      <div class="item" v-for="item in commentList" :key="item.id">
+        <div class="user">
+          <img :src="item.member.avatar" alt="">
+          <span>{{formatNickname(item.member.nickname)}}</span>
+        </div>
+        <div class="body">
+          <div class="score">
+            <i v-for="i in item.score" :key="i+'1'" class="iconfont icon-wjx01"></i>
+            <i v-for="i in 5-item.score" :key="i+'2'" class="iconfont icon-wjx02"></i>
+            <span class="attr">{{formatSpecs(item.orderInfo.specs)}}</span>
+          </div>
+          <div class="text">{{item.content}}</div>
+          <div class="time">
+            <span>{{item.createTime}}</span>
+            <span class="zan"><i class="iconfont icon-dianzan"></i> {{item.praiseCount}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+</template>
+```
+
+### 图片预览
+
+> 目的：封装一个组件展示 图片列表 和 预览图片 功能。
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614241295071.e8b00b1e.png)
+
+大致步骤：
+
+- 准备一个组件导入goods-comment.vue使用起来，传入图片数据
+- 展示图片列表，和选中图片功能。
+- 提供图片预览功能和关闭图片预览。
+
+落地代码：
+
+- 展示图片列表和选中效果实现
+`src/views/goods/goods-comment-image.vue`
+
+```vue
+<template>
+  <div class="goods-comment-image">
+    <div class="list">
+      <a
+        href="javascript:;"
+        :class="{active:currImage===url}"
+        @click="currImage=url"
+        v-for="url in pictures"
+        :key="url"
+      >
+        <img :src="url" alt="">
+      </a>
+    </div>
+    <div class="preview"></div>
+  </div>
+</template>
+<script>
+import { ref } from 'vue'
+export default {
+  name: 'GoodsCommentImage',
+  props: {
+    pictures: {
+      type: Array,
+      default: () => []
+    }
+  },
+  setup () {
+    const currImage = ref(null)
+    return { currImage }
+  }
+}
+</script>
+<style scoped lang="less">
+.goods-comment-image {
+  .list {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    a {
+      width: 120px;
+      height: 120px;
+      border:1px solid #e4e4e4;
+      margin-right: 20px;
+      margin-bottom: 10px;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      &.active {
+        border-color: @xtxColor;
+      }
+    }
+  }
+}
+</style>
+```
+
+`src/views/goods/goods-comment.vue`
+
+```diff
++import GoodsCommentImage from './goods-comment-image'
+// ...
+export default {
+  name: 'GoodsComment',
++  components: { GoodsCommentImage },
+  props: {
+```
+```diff
+          <div class="text">{{item.content}}</div>
+          <!-- 使用图片预览组件 -->
++          <GoodsCommentImage v-if="item.pictures.length" :pictures="item.pictures" />
+          <div class="time">
+```
+
+- 实现预览图片和关闭预览
+```html
+    <div class="preview" v-if="currImage">
+      <img :src="currImage" alt="">
+      <i @click="currImage=null" class="iconfont icon-close-new"></i>
+    </div>
+```
+```less
+  .preview {
+    width: 480px;
+    height: 480px;
+    border: 1px solid #e4e4e4;
+    background: #f8f8f8;
+    margin-bottom: 20px;
+    position: relative;
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    i {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      background: rgba(0,0,0,0.2);
+      color: #fff;
+      text-align: center;
+      line-height: 30px;
+    }
+  }
+```
+
+### ★分页组件
+ 
+> 目的：封装一个统一的分页组件。
+
+大致步骤：
+
+- 分页基础布局，依赖数据分析。
+- 分页内部逻辑，完成切换效果。
+- 接收外部数据，提供分页事件。
+
+落地代码：
+
+分页基础布局，依赖数据分析 `src/components/library/xtx-pagination.vue`
+
+```vue
+<template>
+  <div class="xtx-pagination">
+    <a href="javascript:;" class="disabled">上一页</a>
+    <span>...</span>
+    <a href="javascript:;" class="active">3</a>
+    <a href="javascript:;">4</a>
+    <a href="javascript:;">5</a>
+    <a href="javascript:;">6</a>
+    <a href="javascript:;">7</a>
+    <span>...</span>
+    <a href="javascript:;">下一页</a>
+  </div>
+</template>
+<script>
+export default {
+  name: 'XtxPagination'
+}
+</script>
+<style scoped lang="less">
+.xtx-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  > a {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    margin-right: 10px;
+    &:hover {
+      color: @xtxColor;
+    }
+    &.active {
+      background: @xtxColor;
+      color: #fff;
+      border-color: @xtxColor;
+    }
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+      &:hover {
+        color: #333
+      }
+    }
+  }
+  > span {
+    margin-right: 10px;
+  }
+}
+</style>
+```
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1614245759420.7fad127d.png)
+
+- 分页内部逻辑，完成切换效果 `src/components/library/xtx-pagination.vue`
+
+1. 准备渲染数据
+
+```js
+  setup () {
+    // 总条数
+    const myTotal = ref(100)
+    // 每页条数
+    const myPageSize = ref(10)
+    // 当前第几页
+    const myCurrentPage = ref(1)
+    // 按钮个数
+    const btnCount = 5
+
+    // 重点：根据上述数据得到（总页数，起始页码，结束页码，按钮数组）
+    const pager = computed(() => {
+      // 计算总页数
+      const pageCount = Math.ceil(myTotal.value / myPageSize.value)
+      // 计算起始页码和结束页码
+      // 1. 理想情况根据当前页码，和按钮个数可得到
+      let start = myCurrentPage.value - Math.floor(btnCount / 2)
+      let end = start + btnCount - 1
+      // 2.1 如果起始页码小于1了，需要重新计算
+      if (start < 1) {
+        start = 1
+        end = (start + btnCount - 1) > pageCount ? pageCount : (start + btnCount - 1)
+      }
+      // 2.2 如果结束页码大于总页数，需要重新计算
+      if (end > pageCount) {
+        end = pageCount
+        start = (end - btnCount + 1) < 1 ? 1 : (end - btnCount + 1)
+      }
+      // 处理完毕start和end得到按钮数组
+      const btnArr = []
+      for (let i = start; i <= end; i++) {
+        btnArr.push(i)
+      }
+      return { pageCount, start, end, btnArr }
+    })
+
+    return { pager, myCurrentPage}
+  }
+```
+
+2. 进行渲染
+
+```html
+<a v-if="myCurrentPage<=1" href="javascript:;" class="disabled">上一页</a>
+<a v-else href="javascript:;">上一页</a>
+<span v-if="pager.start>1">...</span>
+<a href="javascript:;" :class="{active:i===myCurrentPage}" v-for="i in pager.btnArr" :key="i">{{i}}</a>
+<span v-if="pager.end<pager.pageCount">...</span>
+<a v-if="myCurrentPage>=pager.pageCount" href="javascript:;" class="disabled">下一页</a>
+<a v-else href="javascript:;">下一页</
+```
+
+3. 切换效果
+```diff
+  <div class="xtx-pagination">
+    <a v-if="myCurrentPage<=1" href="javascript:;" class="disabled">上一页</a>
++    <a @click="changePage(myCurrentPage-1)" v-else href="javascript:;">上一页</a>
+    <span v-if="pager.start>1">...</span>
++    <a @click="changePage(i)" href="javascript:;" :class="{active:i===myCurrentPage}" v-for="i in pager.btnArr" :key="i">{{i}}</a>
+    <span v-if="pager.end<pager.pageCount">...</span>
+    <a v-if="myCurrentPage>=pager.pageCount" href="javascript:;" class="disabled">下一页</a>
++    <a @click="changePage(myCurrentPage+1)" v-else href="javascript:;">下一页</a>
+  </div>
+```
+```js
+    // 改变页码
+    const changePage = (newPage) => {
+      myCurrentPage.value = newPage
+    }
+
+    return { pager, myCurrentPage, changePage }
+```
+
+- 接收外部数据，提供分页事件。
+```js
+  props: {
+    total: {
+      type: Number,
+      default: 100
+    },
+    currentPage: {
+      type: Number,
+      default: 1
+    },
+    pageSize: {
+      type: Number,
+      default: 10
+    }
+  }
+```
+```js
+    // 监听传人的值改变
+    watch(props, () => {
+      myTotal.value = props.total
+      myPageSize.value = props.pageSize
+      myCurrentPage.value = props.currentPage
+    }, { immediate: true })
+```
+```js
+    // 改变页码
+    const changePage = (newPage) => {
+      if (myCurrentPage.value !== newPage) {
+        myCurrentPage.value = newPage
+        // 通知父组件最新页码
+        emit('current-change', newPage)
+      }
+    }
+```
+
+最后使用组件：
+```diff
++   // 记录总条数
+	const commentList = ref([])
++   const total = ref(0)
+	watch(reqParams, async () => {
+      const data = await findCommentListByGoods(props.goods.id, reqParams)
+      commentList.value = data.result
++      total.value = data.result.counts
+    }, { immediate: true })
+```
+```js
+	// 改变分页函数
+    const changePager = (np) => {
+      reqParams.page = np
+    }
+    return { commentInfo, currTagIndex, changeTag, reqParams, changeSort, commentList, total, changePager }
+```
+```html
+<!-- 分页 -->
+<XtxPagination @current-change="changePager" :total="total" :current-page="reqParams.page"  />
+```
+筛选和排序改变后页码回到第一页：
+```diff
+    // 改变排序
+    const changeSort = (type) => {
+      reqParams.sortField = type
++      reqParams.page = 1
+    }
+```
+```diff
+    const changeTag = (i) => {
+      currTagIndex.value = i
+      // 设置有图和标签条件
+      const currTag = commentInfo.value.tags[i]
+      if (currTag.type === 'all') {
+        reqParams.hasPicture = false
+        reqParams.tag = null
+      } else if (currTag.type === 'img') {
+        reqParams.hasPicture = true
+        reqParams.tag = null
+      } else {
+        reqParams.hasPicture = false
+        reqParams.tag = currTag.title
+      }
++      reqParams.page = 1
+    }
+```
+
+优化：有条数才显示分页
+```html
+<div class="xtx-pagination" v-if="total>0">
+````

@@ -2,9 +2,9 @@
  * @Author: hidari
  * @Date: 2022-04-14 11:53:40
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 19:38:43
+ * @LastEditTime: 2022-04-24 12:13:31
  * @FilePath: \shopping-centre-management\src\utils\request.js
- * @Description:
+ * @Description: 封装 axios
  *
  * Copyright (c) 2022 by hidari, All Rights Reserved.
  */
@@ -18,7 +18,7 @@ import store from '@/store'
 import router from '@/router'
 
 // 导出基准地址，原因：其他地方不是通过axios发请求的地方用上基准地址
-export const baseURL = 'https://apipc-xiaotuxian-front.itheima.net'
+export const baseURL = 'https://apipc-xiaotuxian-front.itheima.net/'
 const instance = axios.create({
   // axios 配置 baseURL timeout
   baseURL,

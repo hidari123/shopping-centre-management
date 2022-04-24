@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-22 17:13:24
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-22 17:53:56
+ * @LastEditTime: 2022-04-24 09:49:33
  * @FilePath: \shopping-centre-management\src\views\goods\components\goods-detail.vue
  * @Description:
  *
@@ -18,7 +18,7 @@
       </li>
     </ul>
     <!-- 图片 -->
-    <img v-for="item in goods.details.pictures" :key="item" :src="item" alt="">
+    <img v-for="(img, i) in goods.details.pictures" :src="img" :key="i" />
   </div>
 </template>
 <script>

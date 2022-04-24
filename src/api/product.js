@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 10:52:21
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-22 18:06:25
+ * @LastEditTime: 2022-04-24 10:55:07
  * @FilePath: \shopping-centre-management\src\api\product.js
  * @Description:
  *
@@ -36,7 +36,14 @@ export const reqFindHotGoods = ({ id, type, limit = 3 }) => request('/goods/hot'
  * @param {String} id - 商品ID
  */
 // axios 遇到 http 开头的地址 不会加上基准地址
-export const reqFindCommentInfoByGoods = (id) => request(`https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate`)
+export const reqFindCommentInfoByGoods = (id) => request(`https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate`, 'get')
 
 // https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate
 // /goods/${id}/evaluate
+
+/**
+ * 获取商品的评价列表
+ * @param {String} id - 商品ID
+ */
+// axios 遇到 http 开头的地址 不会加上基准地址
+export const reqFindCommentInfoList = (id, params) => request(`https://mock.boxuegu.com/mock/1175/goods/${id}/evaluate/page`, 'get', params)
