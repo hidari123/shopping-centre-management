@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-25 11:20:11
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-26 09:55:32
+ * @LastEditTime: 2022-04-26 11:07:00
  * @FilePath: \shopping-centre-management\src\api\user.js
  * @Description: user模块请求api
  *
@@ -81,3 +81,10 @@ export const reqUserQQPatchCode = (mobile) => request('/register/code', 'get', {
    * @returns
    */
 export const reqUserQQPatchLogin = ({ unionId, mobile, code, account, password }) => request(`/login/social/${unionId}/complement`, 'post', { unionId, mobile, code, account, password })
+
+/**
+ * QQ解绑
+ * @param {String} mobile -手机号
+ * @returns
+ */
+export const reqUserQQUnbindingLogin = (mobile) => request('/login/social/unbind', 'get', { mobile })
