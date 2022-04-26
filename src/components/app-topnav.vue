@@ -1,13 +1,23 @@
+<!--
+ * @Author: hidari
+ * @Date: 2022-04-14 17:52:54
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-25 14:26:43
+ * @FilePath: \shopping-centre-management\src\components\app-topnav.vue
+ * @Description:
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+-->
 <template>
   <nav class="app-topnav">
     <div class="container">
       <ul>
         <template v-if="profile.token">
             <li><a href="javascript:;"><i class="iconfont icon-user"></i>{{profile.account}}</a></li>
-            <li><a href="javascript:;">退出登录</a></li>
+            <li><a href="javascript:;" @click="logout">退出登录</a></li>
         </template>
         <template v-else>
-            <li><a href="javascript:;">请先登录</a></li>
+            <li><router-link to="/login">请先登录</router-link></li>
             <li><a href="javascript:;">免费注册</a></li>
         </template>
         <li><a href="javascript:;">我的订单</a></li>
@@ -22,6 +32,7 @@
 <script>
 import { computed } from '@vue/runtime-core'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 export default {
   name: 'AppTopnav',
   setup () {
@@ -31,8 +42,18 @@ export default {
     const profile = computed(() => {
       return store.state.user.profile
     })
+
+    // 退出登录
+    const router = useRouter()
+    const logout = () => {
+    // 1. 清除本地存储信息和 vuex 中的用户信息
+      store.commit('user/setUser', {})
+      // 2. 跳转登录
+      router.push('/login')
+    }
     return {
-      profile
+      profile,
+      logout
     }
   }
 }

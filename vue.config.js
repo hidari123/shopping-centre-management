@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 13:38:31
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 16:59:20
+ * @LastEditTime: 2022-04-25 15:25:33
  * @FilePath: \shopping-centre-management\vue.config.js
  * @Description:
  *
@@ -28,5 +28,13 @@ module.exports = {
       .use('url-loader')
       .loader('url-loader')
       .tap(options => Object.assign(options, { limit: 10000 }))
+    // 给webpack-dev-server开启可IP和域名访问权限
+    config.devServer.disableHostCheck(true)
+  },
+  // 这个是设置外部扩展，模块为qc变量名为QC，导入qc将不做打包。
+  configureWebpack: {
+    externals: {
+      qc: 'QC'
+    }
   }
 }
