@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 18:27:01
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 10:23:58
+ * @LastEditTime: 2022-04-26 15:09:24
  * @FilePath: \shopping-centre-management\src\components\app-header.vue
  * @Description: 头部区域 + 搜索
  *
@@ -17,11 +17,7 @@
         <i class="iconfont icon-search"></i>
         <input @keyup.enter="search" v-model="keyword" type="text" placeholder="搜一搜">
       </div>
-      <div class="cart">
-        <a class="curr" href="#">
-          <i class="iconfont icon-cart"></i><em>2</em>
-        </a>
-      </div>
+      <app-header-cart />
     </div>
   </header>
 </template>
@@ -30,9 +26,10 @@
 import { ref } from '@vue/reactivity'
 import { useRouter } from 'vue-router'
 import AppHeaderNav from './app-header-nav'
+import AppHeaderCart from './app-header-cart.vue'
 export default {
   name: 'AppHeader',
-  components: { AppHeaderNav },
+  components: { AppHeaderNav, AppHeaderCart },
   setup () {
     // 需求：搜索框输入后回车跳转搜索
     // 1. 双向绑定搜索框

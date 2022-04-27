@@ -714,8 +714,10 @@ export default {
 - `inject`函数给当前组件注入`provide`提供的数据和函数
 
 ## 补充-v-model语法糖
-在vue2.0中v-mode语法糖简写的代码 `<Son :value="msg" @input="msg=$event" />`
-在vue3.0中v-model语法糖有所调整：`<Son :modelValue="msg" @update:modelValue="msg=$event" />`
+- 在vue2.0中v-mode语法糖简写的代码 `<Son :value="msg" @input="msg=$event" />`
+`v-model` 绑定 `:value` 接收 `@input`
+- 在vue3.0中v-model语法糖有所调整：`<Son :modelValue="msg" @update:modelValue="msg=$event" />`
+`v-model` 绑定 => `:modelValue` 接收 => `@update:modelValue`
 ```vue
 <template>
   <div class="container">

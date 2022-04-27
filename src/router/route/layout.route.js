@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 13:57:49
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-21 11:16:15
+ * @LastEditTime: 2022-04-26 16:56:48
  * @FilePath: \shopping-centre-management\src\router\route\layout.route.js
  * @Description:
  *
@@ -44,6 +44,12 @@ export const Layout = [
         path: '/product/:id',
         name: 'Goods',
         component: () => import('@/views/goods')
+      },
+      {
+        // 购物车
+        path: '/cart',
+        name: 'Cart',
+        component: () => import('@/views/cart')
       }
     ]
   }

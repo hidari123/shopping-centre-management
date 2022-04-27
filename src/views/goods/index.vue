@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 10:48:51
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-22 17:59:18
+ * @LastEditTime: 2022-04-26 17:42:16
  * @FilePath: \shopping-centre-management\src\views\goods\index.vue
  * @Description: 商品详情
  *
@@ -34,7 +34,7 @@
             <goods-sku :goods="goods" :skuId="floorPriceId" @change="changeSku"/>
             <!-- 数量选择组件 -->
             <xtx-numbox label="数量" v-model="count" :max="goods.inventory" />
-            <XtxButton type="primary" style="margin-top:20px;">加入购物车</XtxButton>
+            <XtxButton type="primary" style="margin-top:20px;" @click="insertCart">加入购物车</XtxButton>
         </div>
       </div>
       <!-- 商品推荐 -->
@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { computed, nextTick, onMounted, provide, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onMounted, provide, ref } from 'vue'
 import { reqFindGoods } from '@/api/product.js'
 import GoodsRelevant from './components/goods-relevant'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
@@ -73,6 +73,7 @@ import GoodsSku from './components/goods-sku.vue'
 import GoodsTabs from './components/goods-tabs.vue'
 import GoodsHot from './components/goods-hot.vue'
 import GoodsWarn from './components/goods-warn.vue'
+import { useStore } from 'vuex'
 export default {
   name: 'Goods',
   components: { GoodsRelevant, GoodsImage, GoodsSales, GoodsName, GoodsSku, GoodsTabs, GoodsHot, GoodsWarn },
@@ -84,6 +85,8 @@ export default {
         goods.value.oldPrice = sku.oldPrice
         goods.value.inventory = sku.inventory
       }
+      // 记录选择后的 sku 可能有数据 可能是空对象
+      currSku.value = sku
     }
 
     /**
@@ -125,12 +128,45 @@ export default {
 
     // 提供 goods 数据给后代使用
     provide('goods', goods)
+
+    // 加入购物车
+    const instance = getCurrentInstance()
+    const store = useStore()
+    const currSku = ref(null)
+    const insertCart = () => {
+      // 判断规格是否完整
+      if (!currSku.value || !currSku.value.skuId) {
+        return instance.proxy.$message({ type: 'warn', text: '请选择商品规格' })
+      }
+      // 选择完整
+      if (count.value > goods.inventory) {
+        return instance.proxy.$message({ type: 'warn', text: '库存不足' })
+      }
+      const { id, name, price, mainPictures } = goods.value
+      const { skuId, specsText: attrsText, inventory: stock } = currSku.value
+      store.dispatch('cart/insertCart', {
+        skuId,
+        attrsText,
+        stock,
+        id,
+        name,
+        price,
+        nowPrice: price,
+        picture: mainPictures[0],
+        selected: true,
+        isEffective: true,
+        count: count.value
+      }).then(
+        instance.proxy.$message({ text: '加入购物车成功', type: 'success' })
+      )
+    }
     return {
       goods,
       loading,
       changeSku,
       floorPriceId,
-      count
+      count,
+      insertCart
     }
   }
 }

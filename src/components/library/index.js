@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-15 16:49:52
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-25 09:47:40
+ * @LastEditTime: 2022-04-27 09:26:05
  * @FilePath: \shopping-centre-management\src\components\library\index.js
  * @Description:
  * 扩展vue原有功能：全局组件，自定义指令，挂载原型方法，注意：没有全局过滤器。
@@ -18,6 +18,9 @@ import defaultImg from '@/assets/images/200.png'
 
 // 导入 message 模块
 import Message from '@/components/library/message'
+
+// 导入 confirm 模块
+import Confirm from './confirm'
 
 // 导入library文件夹下的所有组件
 
@@ -47,6 +50,7 @@ export default {
 
     // 定义原型函数
     app.config.globalProperties.$message = Message
+    app.config.globalProperties.$confirm = Confirm
   }
 }
 
