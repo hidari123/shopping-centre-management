@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 11:40:58
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-26 18:22:29
+ * @LastEditTime: 2022-04-27 14:31:40
  * @FilePath: \shopping-centre-management\src\store\modules\cart.store.js
  * @Description: 购物车模块
  *
@@ -97,6 +97,7 @@ export default {
         }
       }
     },
+
     /**
      * 删除购物车商品
      * @param {*} state
@@ -178,6 +179,32 @@ export default {
         }
       })
     },
+
+    /**
+     * 修改规格
+     * @param {*} ctx
+     * @param {*} oldSkuId => 旧的全部商品信息 newSku => 更新商品信息后的5条数据
+     */
+    updateCartSku (ctx, { oldSkuId, newSku }) {
+      return new Promise((resolve, reject) => {
+        if (ctx.rootState.user.profile.token) {
+          // 登录 TODO
+        } else {
+          // 本地
+          // 1. 找出旧的商品信息
+          const oldGoods = ctx.state.list.find(item => item.skuId === oldSkuId)
+          // 2. 删除旧的商品信息
+          ctx.commit('deleteCart', oldSkuId)
+          // 3. 根据新的 sku 和旧的商品信息 合并为一条新的购物车商品数据
+          const { skuId, price: nowPrice, specsText: attrsText, inventory: stock } = newSku
+          const newGoods = { ...oldGoods, skuId, nowPrice, attrsText, stock }
+          // 4. 添加新的商品
+          ctx.commit('insertCart', newGoods)
+          resolve()
+        }
+      })
+    },
+
     /**
      * 删除单条购物车数据
      * @param {*} ctx
@@ -194,6 +221,28 @@ export default {
         }
       })
     },
+
+    /**
+     * 批量删除购物车数据
+     * @param {*} ctx
+     * @param {*} isClear => true: 清空失效列表 false: 清楚选中数据
+     * @returns
+     */
+    batchDeleteCart (ctx, isClear) {
+      return new Promise((resolve, reject) => {
+        if (ctx.rootState.user.profile.token) {
+          // 登录 TODO
+        } else {
+          // 本地
+          // 找出选中的商品列表 遍历调用删除的 mutations
+          ctx.getters[isClear ? 'invalidList' : 'selectedList'].forEach(item => {
+            ctx.commit('deleteCart', item.skuId)
+          })
+          resolve()
+        }
+      })
+    },
+
     /**
      * 有效商品的全选&反选
      * @param {*} ctx

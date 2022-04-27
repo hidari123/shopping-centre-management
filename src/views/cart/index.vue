@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-26 16:55:46
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-27 11:29:53
+ * @LastEditTime: 2022-04-27 14:32:30
  * @FilePath: \shopping-centre-management\src\views\cart\index.vue
  * @Description:
  *
@@ -48,7 +48,8 @@
                   <div>
                     <p class="name ellipsis">{{item.name}}</p>
                     <!-- 选择规格组件 -->
-                    <p class="attr">{{item.attrsText}}</p>
+                    <!-- 子组件传来的值不全 只有5个 需要拼接上未改变的旧值 从 item.skuId中取得 -->
+                    <cart-sku :attrs-text="item.attrsText" :skuId="item.skuId" @change="$event => updateCartSku(item.skuId,$event)"/>
                   </div>
                 </div>
               </td>
@@ -60,7 +61,7 @@
                 </p>
               </td>
               <td class="tc">
-                <XtxNumbox :modelValue="item.count" />
+                <XtxNumbox @update:modelValue="$event => updateCount(item.skuId, $event)" :max="item.stock" :modelValue="item.count" />
               </td>
               <td class="tc"><p class="f16 red">&yen;{{Math.round(item.nowPrice*100*item.count/100)}}</p></td>
               <td class="tc">
@@ -90,7 +91,7 @@
               <td class="tc">{{item.count}}</td>
               <td class="tc"><p>&yen;{{item.nowPrice*100*item.count/100}}</p></td>
               <td class="tc">
-                <p><a class="green" href="javascript:;">删除</a></p>
+                <p><a class="green" href="javascript:;"  @click="deleteCart(item.skuId)">删除</a></p>
                 <p><a href="javascript:;">找相似</a></p>
               </td>
             </tr>
@@ -100,10 +101,10 @@
       <!-- 操作栏 -->
       <div class="action">
         <div class="batch">
-          <XtxCheckbox :modelValue="$store.getters['cart/isCheckAll']">全选</XtxCheckbox>
-          <a href="javascript:;" @click="deleteCart(item.skuId)">删除商品</a>
+          <XtxCheckbox :modelValue="$store.getters['cart/isCheckAll']" @change="checkAll">全选</XtxCheckbox>
+          <a href="javascript:;" @click="batchDeleteCart(false)">删除商品</a>
           <a href="javascript:;">移入收藏夹</a>
-          <a href="javascript:;">清空失效商品</a>
+          <a href="javascript:;" @click="batchDeleteCart(true)">清空失效商品</a>
         </div>
         <div class="total">
           共 {{$store.getters['cart/validTotal']}} 件商品，已选择 {{$store.getters['cart/selectedTotal']}} 件，商品合计：
@@ -121,9 +122,10 @@ import GoodRelevant from '@/views/goods/components/goods-relevant'
 import { useStore } from 'vuex'
 import { getCurrentInstance } from '@vue/runtime-core'
 import CartNone from './components/cart-none.vue'
+import CartSku from './components/cart-sku.vue'
 export default {
   name: 'Cart',
-  components: { GoodRelevant, CartNone },
+  components: { GoodRelevant, CartNone, CartSku },
   setup () {
     const instance = getCurrentInstance()
     const store = useStore()
@@ -147,13 +149,37 @@ export default {
           instance.proxy.$message({ type: 'success', text: '删除成功' })
         })
       }).catch(e => {
-        console.log('cancel')
+        instance.proxy.$message({ type: 'warn', text: '取消删除' })
       })
+    }
+
+    // 批量删除选中商品，也支持清空无效商品
+    const batchDeleteCart = (isClear) => {
+      instance.proxy.$confirm({ text: `您确定从购物车删除${isClear ? '失效' : '选中'}的商品吗？` }).then(() => {
+        store.dispatch('cart/batchDeleteCart', isClear).then(() => {
+          instance.proxy.$message({ type: 'success', text: '批量删除成功' })
+        })
+      }).catch(e => {
+        instance.proxy.$message({ type: 'warn', text: '批量取消删除' })
+      })
+    }
+
+    // 修改数量
+    const updateCount = (skuId, count) => {
+      store.dispatch('cart/updateCart', { skuId, count })
+    }
+
+    // 修改规格
+    const updateCartSku = (oldSkuId, newSku) => {
+      store.dispatch('cart/updateCartSku', { oldSkuId, newSku })
     }
     return {
       checkOne,
       checkAll,
-      deleteCart
+      deleteCart,
+      batchDeleteCart,
+      updateCount,
+      updateCartSku
     }
   }
 }
