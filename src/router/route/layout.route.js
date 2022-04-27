@@ -2,12 +2,13 @@
  * @Author: hidari
  * @Date: 2022-04-14 13:57:49
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-26 16:56:48
+ * @LastEditTime: 2022-04-27 18:07:25
  * @FilePath: \shopping-centre-management\src\router\route\layout.route.js
  * @Description:
  *
  * Copyright (c) 2022 by hidari, All Rights Reserved.
  */
+import { Member } from './member.route'
 export const Layout = [
   // 一级路由布局容器
   {
@@ -50,7 +51,8 @@ export const Layout = [
         path: '/cart',
         name: 'Cart',
         component: () => import('@/views/cart')
-      }
+      },
+      ...Member
     ]
   }
 ]

@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-26 16:55:46
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-27 14:32:30
+ * @LastEditTime: 2022-04-27 17:43:30
  * @FilePath: \shopping-centre-management\src\views\cart\index.vue
  * @Description:
  *
@@ -109,7 +109,7 @@
         <div class="total">
           共 {{$store.getters['cart/validTotal']}} 件商品，已选择 {{$store.getters['cart/selectedTotal']}} 件，商品合计：
           <span class="red">¥{{$store.getters['cart/selectedAmount']}}</span>
-          <XtxButton type="primary">下单结算</XtxButton>
+          <XtxButton type="primary" @click="checkout">下单结算</XtxButton>
         </div>
       </div>
       <!-- 猜你喜欢 -->
@@ -123,6 +123,7 @@ import { useStore } from 'vuex'
 import { getCurrentInstance } from '@vue/runtime-core'
 import CartNone from './components/cart-none.vue'
 import CartSku from './components/cart-sku.vue'
+import { useRouter } from 'vue-router'
 export default {
   name: 'Cart',
   components: { GoodRelevant, CartNone, CartSku },
@@ -173,13 +174,34 @@ export default {
     const updateCartSku = (oldSkuId, newSku) => {
       store.dispatch('cart/updateCartSku', { oldSkuId, newSku })
     }
+
+    // 结算
+    const router = useRouter()
+    const checkout = () => {
+      // 1. 判断是否选择有效商品
+      // 2. 判断是否已经登录，未登录 弹窗提示
+      // 3. 进行跳转 （需要做访问权限控制，使用导航守卫，需要登录的路由跳转 => 拦截到登陆页面）
+      if (store.getters['cart/selectedList'].length === 0) {
+        return instance.proxy.$message({ text: '至少选中一件商品才能结算' })
+      }
+      if (!store.state.user.profile.token) {
+        instance.proxy.$confirm({ text: '下单结算需要登录，是否现在去登录？' }).then(() => {
+          router.push('/member/checkout')
+        }).catch(e => {
+          instance.proxy.$message({ type: 'warn', text: '取消结算' })
+        })
+      } else {
+        router.push('/member/checkout')
+      }
+    }
     return {
       checkOne,
       checkAll,
       deleteCart,
       batchDeleteCart,
       updateCount,
-      updateCartSku
+      updateCartSku,
+      checkout
     }
   }
 }
