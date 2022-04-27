@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 10:48:51
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-26 17:42:16
+ * @LastEditTime: 2022-04-27 17:10:40
  * @FilePath: \shopping-centre-management\src\views\goods\index.vue
  * @Description: 商品详情
  *
@@ -65,7 +65,7 @@
 import { computed, getCurrentInstance, nextTick, onMounted, provide, ref } from 'vue'
 import { reqFindGoods } from '@/api/product.js'
 import GoodsRelevant from './components/goods-relevant'
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import GoodsImage from './components/goods-image.vue'
 import GoodsSales from './components/goods-sales.vue'
 import GoodsName from './components/goods-name.vue'
@@ -132,6 +132,7 @@ export default {
     // 加入购物车
     const instance = getCurrentInstance()
     const store = useStore()
+    const router = useRouter()
     const currSku = ref(null)
     const insertCart = () => {
       // 判断规格是否完整
@@ -157,6 +158,7 @@ export default {
         isEffective: true,
         count: count.value
       }).then(
+        router.push('/cart'),
         instance.proxy.$message({ text: '加入购物车成功', type: 'success' })
       )
     }

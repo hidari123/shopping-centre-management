@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-24 16:13:28
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-25 18:06:14
+ * @LastEditTime: 2022-04-27 15:38:23
  * @FilePath: \shopping-centre-management\src\views\login\components\login-form.vue
  * @Description:
  *
@@ -174,10 +174,15 @@ export default {
           // 1. 存储信息
           const { id, account, nickname, avatar, token, mobile } = data.result
           store.commit('user/setUser', { id, account, nickname, avatar, token, mobile })
-          // 2. 登陆跳转
-          router.push(route.query.redirectUrl || '/')
-          // 3. 消息提示
-          Message({ type: 'success', text: '登陆成功' })
+
+          // 合并购物车
+          store.dispatch('cart/mergeLocalCart').then(() => {
+            // 进入 then 说明合并成功
+            // 2. 登陆跳转
+            router.push(route.query.redirectUrl || '/')
+            // 3. 消息提示
+            Message({ type: 'success', text: '登陆成功' })
+          })
         } catch (e) {
           // 失败
           // 消息提示

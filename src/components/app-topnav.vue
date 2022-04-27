@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 17:52:54
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-25 14:26:43
+ * @LastEditTime: 2022-04-27 15:35:26
  * @FilePath: \shopping-centre-management\src\components\app-topnav.vue
  * @Description:
  *
@@ -48,6 +48,8 @@ export default {
     const logout = () => {
     // 1. 清除本地存储信息和 vuex 中的用户信息
       store.commit('user/setUser', {})
+      // 清空购物车
+      store.commit('cart/setCart', [])
       // 2. 跳转登录
       router.push('/login')
     }

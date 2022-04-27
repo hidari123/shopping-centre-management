@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-25 15:48:53
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-25 17:50:56
+ * @LastEditTime: 2022-04-27 15:38:28
  * @FilePath: \shopping-centre-management\src\views\login\callback.vue
  * @Description: 登录回调页面
  *
@@ -78,7 +78,14 @@ export default {
           // 此时QQ不会出现来源页 在来到登录页时把地址栏地址保存在 vuex 中
           router.push(store.state.user.redirectUrl || '/')
           // 3. 成功提示
-          Message({ type: 'success', text: 'QQ登陆成功' })
+          // 合并购物车
+          store.dispatch('cart/mergeLocalCart').then(() => {
+            // 进入 then 说明合并成功
+            // 2. 登陆跳转
+            router.push(store.state.user.redirectUrl || '/')
+            // 3. 消息提示
+            Message({ type: 'success', text: 'QQ登陆成功' })
+          })
         }).catch(e => {
           // 登陆失败 没有和后台绑定
           isBind.value = false
