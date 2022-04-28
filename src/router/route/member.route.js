@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-27 18:04:29
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 15:44:33
+ * @LastEditTime: 2022-04-28 16:06:49
  * @FilePath: \shopping-centre-management\src\router\route\member.route.js
  * @Description: 个人中心
  *
@@ -26,5 +26,19 @@ export const Member = [
     path: '/pay/callback',
     name: 'PayResult',
     component: () => import('@/views/member/pay/result')
+  },
+  {
+    // 个人中心外部容器
+    path: '/member',
+    name: 'MemberLayout',
+    component: () => import('@/views/member/Layout'),
+    children: [
+      {
+        // 个人中心
+        path: '/member',
+        name: 'MemberHome',
+        component: () => import('@/views/member/home')
+      }
+    ]
   }
 ]

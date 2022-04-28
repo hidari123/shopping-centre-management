@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-14 17:52:54
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-27 15:35:26
+ * @LastEditTime: 2022-04-28 16:14:19
  * @FilePath: \shopping-centre-management\src\components\app-topnav.vue
  * @Description:
  *
@@ -13,7 +13,7 @@
     <div class="container">
       <ul>
         <template v-if="profile.token">
-            <li><a href="javascript:;"><i class="iconfont icon-user"></i>{{profile.account}}</a></li>
+            <li><router-link to="/member"><i class="iconfont icon-user"></i>{{profile.account}}</router-link></li>
             <li><a href="javascript:;" @click="logout">退出登录</a></li>
         </template>
         <template v-else>
