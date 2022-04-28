@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-28 16:00:42
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 16:00:42
+ * @LastEditTime: 2022-04-28 20:00:54
  * @FilePath: \shopping-centre-management\src\components\app-member-aside.vue
  * @Description: 个人中心左菜单组件
  *
@@ -13,7 +13,12 @@
     <div class="user-manage">
       <h4>我的账户</h4>
       <div class="links">
-        <a href="javascript:;">个人中心</a>
+          <!--
+          router-link-active   当你的路由路径包含 router-link组件的to属性值，当前组件会加上它
+          router-link-exact-active   当你的路由路径完全和你的router-link组件的to属性值一致，当前组件会加上它
+           -->
+        <!-- vue3.0 router-link-active 加不上，路由路径包含 且 需要又路由嵌套关系 -->
+        <router-link to="/member" ctive-class="active">个人中心</router-link>
         <a href="javascript:;">消息通知</a>
         <a href="javascript:;">个人信息</a>
         <a href="javascript:;">安全设置</a>
@@ -25,7 +30,7 @@
       </div>
       <h4>交易管理</h4>
       <div class="links">
-        <a href="javascript:;">我的订单</a>
+        <router-link to="/member/order" active-class="active">我的订单</router-link>
         <a href="javascript:;">优惠券</a>
         <a href="javascript:;">礼品卡</a>
         <a href="javascript:;">评价晒单</a>
@@ -48,7 +53,7 @@
 
 <script>
 export default {
-  name: 'XtxMemberAside'
+  name: 'MemberAside'
 }
 </script>
 

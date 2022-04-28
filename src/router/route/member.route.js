@@ -1,8 +1,11 @@
+import { h } from 'vue'
+import { RouterView } from 'vue-router'
+
 /*
  * @Author: hidari
  * @Date: 2022-04-27 18:04:29
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 16:06:49
+ * @LastEditTime: 2022-04-28 20:00:40
  * @FilePath: \shopping-centre-management\src\router\route\member.route.js
  * @Description: 个人中心
  *
@@ -38,6 +41,28 @@ export const Member = [
         path: '/member',
         name: 'MemberHome',
         component: () => import('@/views/member/home')
+      },
+      {
+        path: '/member/order',
+        component: {
+          // 创建一个 Routerview 容器，形成嵌套关系，动态激活类名
+          // vue3.0 需要有嵌套关系才能模糊匹配
+          render: () => h(<RouterView/>)
+        },
+        children: [
+          {
+            // 订单管理
+            path: '',
+            name: 'Order',
+            component: () => import('@/views/member/order')
+          },
+          {
+            // 订单详情
+            path: ':id',
+            name: 'Detail',
+            component: () => import('@/views/member/order/detail')
+          }
+        ]
       }
     ]
   }
