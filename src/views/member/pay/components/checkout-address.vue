@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-27 18:09:12
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 15:57:57
+ * @LastEditTime: 2022-04-28 17:20:03
  * @FilePath: \shopping-centre-management\src\views\member\pay\components\checkout-address.vue
  * @Description: 地址组件
  *
@@ -100,7 +100,7 @@ export default {
       // 显示的地址换成选中的地址
       showAddress.value = selectedAddress.value
       // 把选中的地址 id 通知结算组件
-      emit('change', selectedAddress.value.id)
+      emit('change', showAddress.value?.id)
       // 关闭对话框
       dialogVisible.value = false
     }
