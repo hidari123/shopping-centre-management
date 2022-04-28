@@ -1,6 +1,17 @@
-// 提供复用逻辑的函数（钩子）
-import { useIntersectionObserver } from '@vueuse/core'
-import { ref } from 'vue'
+/*
+ * @Author: hidari
+ * @Date: 2022-04-18 13:03:19
+ * @LastEditors: hidari
+ * @LastEditTime: 2022-04-28 15:12:29
+ * @FilePath: \shopping-centre-management\src\hooks\index.js
+ * @Description: 提供复用逻辑的函数（钩子）
+ *
+ * Copyright (c) 2022 by hidari, All Rights Reserved.
+ */
+
+import { useIntersectionObserver, useIntervalFn } from '@vueuse/core'
+import { ref, onUnmounted } from 'vue'
+import dayjs from 'dayjs'
 /**
  * 数据懒加载函数
  * @param {Element} target - Dom 对象
@@ -37,4 +48,40 @@ export const useLazyData = (apiFn) => {
   )
   // 返回--->数据（dom,后台数据）
   return { target, res }
+}
+
+/**
+ * 支付倒计时函数
+ */
+export const usePayTime = () => {
+  const time = ref(0)
+  const timeText = ref('')
+  const { pause, resume } = useIntervalFn(() => {
+    time.value--
+    timeText.value = dayjs.unix(time.value).format('mm分ss秒')
+    if (time.value <= 0) {
+      pause()
+    }
+  }, 1000, false)
+
+  // 组件销毁清除倒计时
+  onUnmounted(() => {
+    pause()
+  })
+
+  /**
+   * 定时器开始
+   * @param {*} countdowm - 倒计时秒数
+   */
+  const start = (countdowm) => {
+    time.value = countdowm
+    // 开启定时器
+    // 将时间戳转化格式
+    timeText.value = dayjs.unix(time.value).format('mm分ss秒')
+    resume()
+  }
+  return {
+    start,
+    timeText
+  }
 }

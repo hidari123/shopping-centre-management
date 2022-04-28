@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-21 13:53:44
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-22 10:21:06
+ * @LastEditTime: 2022-04-28 11:50:36
  * @FilePath: \shopping-centre-management\src\components\library\xtx-city.vue
  * @Description:
  *
@@ -12,7 +12,7 @@
   <div class="xtx-city" ref="target">
     <div class="select" @click="toggle" :class="{active: visible}">
       <span class="value" v-if="fullLocation">{{fullLocation}}</span>
-      <span class="placeholder" v-else>请选择配送地址</span>
+      <span class="placeholder" v-else>{{placeholder}}</span>
       <i class="iconfont icon-angle-down"></i>
     </div>
     <div class="option" v-if="visible">
@@ -34,6 +34,10 @@ export default {
     fullLocation: {
       tyoe: String,
       default: ''
+    },
+    placeholder: {
+      type: String,
+      default: '请选择配送地址'
     }
   },
   setup (props, { emit }) {

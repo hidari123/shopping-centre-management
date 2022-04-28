@@ -2,9 +2,9 @@
  * @Author: hidari
  * @Date: 2022-04-27 18:03:29
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-27 18:18:45
+ * @LastEditTime: 2022-04-28 14:17:45
  * @FilePath: \shopping-centre-management\src\views\member\pay\checkout.vue
- * @Description:
+ * @Description: 订单组件
  *
  * Copyright (c) 2022 by hidari, All Rights Reserved.
 -->
@@ -20,7 +20,7 @@
         <!-- 收货地址 -->
         <h3 class="box-title">收货地址</h3>
         <div class="box-body">
-            <checkout-address  :list="checkoutInfo.userAddresses" />
+            <checkout-address @change="changeAddress" @changeList="changeListCallback" :list="checkoutInfo.userAddresses" />
         </div>
         <!-- 商品信息 -->
         <h3 class="box-title">商品信息</h3>
@@ -80,26 +80,68 @@
         </div>
         <!-- 提交订单 -->
         <div class="submit">
-          <XtxButton type="primary">提交订单</XtxButton>
+          <XtxButton type="primary" @click="submitOrder">提交订单</XtxButton>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
-import { ref } from 'vue'
+import { getCurrentInstance, reactive, ref } from 'vue'
 import checkoutAddress from './components/checkout-address.vue'
-import { reqFindCheckoutInfo } from '@/api/order'
+import { reqCreateOrder, reqFindCheckoutInfo } from '@/api/order'
+import { useRouter } from 'vue-router'
 export default {
   components: { checkoutAddress },
   name: 'Checkout',
   setup () {
+    // 结算功能 => 生成订单 => 订单信息
     const checkoutInfo = ref(null)
     reqFindCheckoutInfo().then(data => {
       checkoutInfo.value = data.result
+      // 把 goods 中的数据解构出来 生成新的数组
+      requestParams.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
     })
+
+    // 需要提交的字段
+    const requestParams = reactive({
+      // 切换地址或者修改默认地址 => 更改
+      addressId: null,
+      deliveryTimeType: 1,
+      payType: 1,
+      buyerMessage: '',
+      // 商品信息 => 获取订单信息后设置
+      goods: []
+    })
+
+    // 提交订单 需要收货地址 id
+    const changeAddress = (id) => {
+      requestParams.addressId = id
+    }
+
+    // 修改地址列表list的回调函数
+    const changeListCallback = (formData) => {
+      checkoutInfo.value.userAddresses.unshift(formData)
+    }
+
+    // 提交订单
+    const instance = getCurrentInstance()
+    const router = useRouter()
+    const submitOrder = async () => {
+      if (!requestParams.addressId) {
+        return instance.proxy.$message({ text: '请选择收货地址', type: 'warn' })
+      }
+      const data = await reqCreateOrder(requestParams)
+      // 提交订单成功
+      instance.proxy.$message({ text: '提交订单成功！', type: 'success' })
+      // 跳转到支付页面
+      router.push({ path: '/member/pay', query: { id: data.result.id } })
+    }
     return {
-      checkoutInfo
+      checkoutInfo,
+      changeAddress,
+      changeListCallback,
+      submitOrder
     }
   }
 }
