@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-26 16:55:46
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-27 17:43:30
+ * @LastEditTime: 2022-04-29 12:05:07
  * @FilePath: \shopping-centre-management\src\views\cart\index.vue
  * @Description:
  *
@@ -63,7 +63,7 @@
               <td class="tc">
                 <XtxNumbox @update:modelValue="$event => updateCount(item.skuId, $event)" :max="item.stock" :modelValue="item.count" />
               </td>
-              <td class="tc"><p class="f16 red">&yen;{{Math.round(item.nowPrice*100*item.count/100)}}</p></td>
+              <td class="tc"><p class="f16 red">&yen;{{Math.round(item.nowPrice*100*item.count)/100}}</p></td>
               <td class="tc">
                 <p><a href="javascript:;">移入收藏夹</a></p>
                 <p><a class="green" href="javascript:;" @click="deleteCart(item.skuId)">删除</a></p>

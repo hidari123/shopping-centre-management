@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-27 18:09:12
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 17:20:03
+ * @LastEditTime: 2022-04-29 15:09:42
  * @FilePath: \shopping-centre-management\src\views\member\pay\components\checkout-address.vue
  * @Description: 地址组件
  *
@@ -45,8 +45,8 @@
     <address-edit ref="AddressEditCom" @on-success="successHandler" />
 </template>
 <script>
-import { ref } from '@vue/reactivity'
-import { computed } from '@vue/runtime-core'
+import { ref, toRefs } from '@vue/reactivity'
+// import { computed } from '@vue/runtime-core'
 import AddressEdit from './address-edit.vue'
 export default {
   name: 'CheckoutAddress',
@@ -81,10 +81,9 @@ export default {
          * ref是单纯的复制,影响不影响之前复制的数据，取决于复制的数据类型，但是会更新UI
          * ref 数据会引起监听行为，而 toRef 不会
          */
-        showAddress.value = computed(() => props.list[0])
+        showAddress.value = toRefs(props.list[0])
       }
     }
-
     // 默认通知父组件一个收货地址 ID
     // showAddress.value?.id => 如果 value有值才取，es6语法
     emit('change', showAddress.value?.id)

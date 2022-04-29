@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-27 18:03:29
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 14:17:45
+ * @LastEditTime: 2022-04-29 18:18:22
  * @FilePath: \shopping-centre-management\src\views\member\pay\checkout.vue
  * @Description: 订单组件
  *
@@ -90,13 +90,35 @@
 import { getCurrentInstance, reactive, ref } from 'vue'
 import checkoutAddress from './components/checkout-address.vue'
 import { reqCreateOrder, reqFindCheckoutInfo } from '@/api/order'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { reqFindOrderRepurchase } from '@/api/member'
 export default {
   components: { checkoutAddress },
   name: 'Checkout',
   setup () {
     // 结算功能 => 生成订单 => 订单信息
     const checkoutInfo = ref(null)
+    const route = useRoute()
+    if (route.query.id) {
+      // 按照订单结算
+      reqFindOrderRepurchase(route.query.orderId)
+    }
+    // if (route.query.orderId) {
+    //   // 再次购买结算
+    //   findOrderRepurchase(route.query.orderId).then(data => {
+    //     checkoutInfo.value = data.result
+    //     // 设置订单商品数据
+    //     order.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+    //   })
+    // } else {
+    //   // 购物车结算
+    //   findOrderPre().then(data => {
+    //     checkoutInfo.value = data.result
+    //     // 设置订单商品数据
+    //     order.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+    //   })
+    // }
+    // 按照购物车商品结算
     reqFindCheckoutInfo().then(data => {
       checkoutInfo.value = data.result
       // 把 goods 中的数据解构出来 生成新的数组

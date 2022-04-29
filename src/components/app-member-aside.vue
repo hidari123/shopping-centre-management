@@ -2,7 +2,7 @@
  * @Author: hidari
  * @Date: 2022-04-28 16:00:42
  * @LastEditors: hidari
- * @LastEditTime: 2022-04-28 20:00:54
+ * @LastEditTime: 2022-04-29 15:56:07
  * @FilePath: \shopping-centre-management\src\components\app-member-aside.vue
  * @Description: 个人中心左菜单组件
  *
@@ -18,7 +18,7 @@
           router-link-exact-active   当你的路由路径完全和你的router-link组件的to属性值一致，当前组件会加上它
            -->
         <!-- vue3.0 router-link-active 加不上，路由路径包含 且 需要又路由嵌套关系 -->
-        <router-link to="/member" ctive-class="active">个人中心</router-link>
+        <router-link to="/member" exact-active-class="active">个人中心</router-link>
         <a href="javascript:;">消息通知</a>
         <a href="javascript:;">个人信息</a>
         <a href="javascript:;">安全设置</a>
