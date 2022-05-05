@@ -21,6 +21,12 @@
     - [查看物流](#%E6%9F%A5%E7%9C%8B%E7%89%A9%E6%B5%81)
   - [订单详情](#%E8%AE%A2%E5%8D%95%E8%AF%A6%E6%83%85)
     - [头部展示](#%E5%A4%B4%E9%83%A8%E5%B1%95%E7%A4%BA)
+    - [steps组件](#steps%E7%BB%84%E4%BB%B6)
+    - [物流信息](#%E7%89%A9%E6%B5%81%E4%BF%A1%E6%81%AF)
+    - [商品信息](#%E5%95%86%E5%93%81%E4%BF%A1%E6%81%AF)
+    - [取消订单](#%E5%8F%96%E6%B6%88%E8%AE%A2%E5%8D%95-1)
+    - [确认收货](#%E7%A1%AE%E8%AE%A4%E6%94%B6%E8%B4%A7-1)
+  - [再次购买](#%E5%86%8D%E6%AC%A1%E8%B4%AD%E4%B9%B0)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -2253,3 +2259,1119 @@ export default {
 - 按照订单状态显示图标和状态
 - 显示编号和下单时间
 - 按照订单状态显示按钮
+
+落地代码：
+
+1. 完成基础布局
+`src/view/member/order/index.vue`
+
+```vue
+<template>
+  <div class="order-detail-page" v-if="order">
+    <!-- 操作栏 -->
+    <DetailAction :order="order" />
+    <!-- 步骤条 组件xtx-steps.vue-->
+    <!-- 物流栏 -->
+    <!-- 订单商品信息 -->
+  </div>
+</template>
+<script>
+import DetailAction from './components/detail-action'
+export default {
+  name: 'OrderDetailPage',
+  components: { DetailAction }
+}
+</script>
+<style scoped lang="less">
+.order-detail-page {
+  background: #fff;
+}
+</style>
+```
+
+`src/views/member/order/components/detail-action.vue`
+
+```vue
+<template>
+    <div class="detail-action">
+      <div class="state">
+        <span class="iconfont icon-order-unpay"></span>
+        <p>待支付</p>
+      </div>
+      <div class="info">
+        <p>订单编号：1372361846887026690</p>
+        <p>下单时间：2021-03-18 01:45:10</p>
+      </div>
+      <div class="btn">
+        <XtxButton type="primary" size="small">评价商品</XtxButton>
+        <XtxButton type="plain" size="small">再次购买</XtxButton>
+        <XtxButton type="gray" size="small">申请售后</XtxButton>
+      </div>
+    </div>
+</template>
+<script>
+export default {
+  name: 'OrderDetailAction'
+}
+</script>
+<style scoped lang="less">
+.detail-action {
+  height: 180px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  .state {
+    width: 220px;
+    text-align: center;
+    .iconfont {
+      font-size: 40px;
+      color: @xtxColor;
+    }
+    p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+  }
+  .info {
+    width: 240px;
+    line-height: 30px;
+    p {
+      color: #999;
+    }
+  }
+  .btn {
+    flex: 1;
+    text-align: right;
+    margin-right: 100px;
+    .xtx-button {
+      margin-left: 20px;
+    }
+  }
+}
+</style>
+```
+
+2. 获取订单详情数据 `src/views/member/order/index.vue`
+
+```js
+import { ref } from 'vue'
+import { findOrder } from '@/api/order'
+import { useRoute } from 'vue-router'
+import DetailAction from './components/detail-action'
+export default {
+  name: 'OrderDetailPage',
+  components: { DetailAction },
+  setup () {
+    const order = ref(null)
+    const route = useRoute()
+    findOrder(route.params.id).then(data => {
+      order.value = data.result
+    })
+    return { order }
+  }
+}
+```
+```vue
+  <div class="order-detail-page" v-if="order">
+    <!-- 操作栏 -->
+    <DetailAction :order="order" />
+    <!-- 步骤条-->
+    <!-- 物流栏 -->
+    <!-- 订单商品信息 -->
+  </div>
+```
+
+3. 按照订单状态显示图标 `src/views/member/order/components/detail-action.vue`
+
+```js
+import { orderStatus } from '@/api/constants'
+export default {
+  name: 'OrderDetailPage',
+  props: {
+    order: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  setup () {
+
+    return { orderStatus }
+  }
+}
+```
+```vue
+      <div class="state">
+      <span class="iconfont" :class="[`icon-order-${orderStatus[order.orderState].name}`]"></span>
+      <p>{{orderStatus[order.orderState].label}}</p>
+      </div>
+```
+
+4. 显示编号和下单时间 `src/views/member/order/components/detail-action.vue`
+
+```vue
+      <div class="info">
+        <p>订单编号：{{order.id}}</p>
+        <p>下单时间：{{order.createTime}}</p>
+      </div>
+```
+
+5. 按照订单状态显示按钮 `src/views/member/order/components/detail-action.vue`
+    1. 待付款：立即付款，取消订单
+    2. 待发货：再次购买
+    3. 待收货：确认收货，再次购买
+    4. 待评价：评价商品，再次购买，申请售后
+    5. 已完成：查看评价，再次购买，申请售后
+    6. 已取消：-
+
+```vue
+    <div class="btn" v-if="order">
+      <!-- 待付款 -->
+      <template v-if="order.orderState === 1">
+        <XtxButton @click="$router.push('/member/pay?id='+order.id)" type="primary" size="small">立即付款</XtxButton>
+        <XtxButton type="gray" size="small">取消订单</XtxButton>
+      </template>
+      <!-- 待发货 -->
+      <template v-if="order.orderState === 2">
+        <XtxButton type="primary" size="small">再次购买</XtxButton>
+      </template>
+      <!-- 待收货 -->
+      <template v-if="order.orderState === 3">
+        <XtxButton type="primary" size="small">确认收货</XtxButton>
+        <XtxButton type="plain" size="small">再次购买</XtxButton>
+      </template>
+      <!-- 待评价 -->
+      <template v-if="order.orderState === 4">
+        <XtxButton type="primary" size="small">再次购买</XtxButton>
+        <XtxButton type="plain" size="small">评价商品</XtxButton>
+        <XtxButton type="gray" size="small">申请售后</XtxButton>
+      </template>
+      <!-- 已完成 -->
+      <template v-if="order.orderState === 5">
+        <XtxButton type="primary" size="small">再次购买</XtxButton>
+        <XtxButton type="plain" size="small">查看评价</XtxButton>
+        <XtxButton type="gray" size="small">申请售后</XtxButton>
+      </template>
+      <!-- 已取消 -->
+    </div>
+```
+
+### steps组件
+
+> 目的：封装一个高可用的步骤条组件
+
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1616040050826.b22096d5.png)
+
+大致步骤：
+
+- xtx-steps 封装一个静态步骤条
+- xtx-steps-item 封装步骤条-条目
+- xtx-steps 组织组件结构
+- xtx-steps 设置激活步骤
+- 使用steps组件显示订单进度
+
+落地代码：
+
+1. xtx-steps 封装一个静态步骤条
+
+```vue
+<template>
+  <div class="xtx-steps">
+    <div class="xtx-steps-item active" v-for="i in 5" :key="i">
+      <div class="step"><span>{{i}}</span></div>
+      <div class="title">提交订单</div>
+      <div class="desc">2021-03-18 02:11:47</div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'XtxSteps'
+}
+</script>
+<style lang="less">
+.xtx-steps {
+  display: flex;
+  text-align: center;
+  &-item {
+    flex: 1;
+    &:first-child {
+      .step {
+        &::before {
+          display: none;
+        }
+      }
+    }
+    &:last-child {
+      .step {
+        &::after {
+          display: none;
+        }
+      }
+    }
+    &.active {
+      .step {
+        > span {
+          border-color: @xtxColor;
+          background: @xtxColor;
+          color: #fff
+        }
+        &::before,&::after {
+          background: @xtxColor;
+        }
+      }
+      .title {
+        color: @xtxColor;
+      }
+    }
+    .step {
+      position: relative;
+      > span {
+        width: 48px;
+        height: 48px;
+        font-size: 28px;
+        border: 2px solid #e4e4e4;
+        background: #fff;
+        border-radius: 50%;
+        line-height: 44px;
+        color: #ccc;
+        display: inline-block;
+        position: relative;
+        z-index: 1;
+      }
+      &::after,&::before{
+        content: "";
+        position: absolute;
+        top: 23px;
+        width: 50%;
+        height: 2px;
+        background: #e4e4e4;
+      }
+      &::before {
+         left: 0;
+      }
+      &::after {
+         right: 0;
+       }
+    }
+    .title {
+      color: #999;
+      padding-top: 12px;
+    }
+    .desc {
+      font-size: 12px;
+      color: #999;
+      padding-top: 6px;
+    }
+  }
+}
+</style>
+```
+
+2. xtx-steps-item 封装步骤条-条目
+`xtx-steps-item.vue`
+
+```vue
+<script>
+export default {
+  name: 'XtxStepsItem',
+  props: {
+    title: {
+      type: String,
+      default: ''
+    },
+    desc: {
+      type: String,
+      default: ''
+    }
+  }
+}
+</script>
+```
+
+2. xtx-steps 组织组件结构
+`xtx-steps.vue`
+```vue
+<script>
+export default {
+  name: 'XtxSteps',
+  props: {
+    active: {
+      type: Number,
+      default: 1
+    }
+  },
+  render () {
+    // 1. 获取默认插槽的节点 this 指的是实例
+    const items = this.$slots.default()
+    // 2. 获取所有动态生成的 xtx-steps-item 组件节点
+    const dynamicItems = []
+    items.forEach(item => {
+        // 静态生成的 xtx-steps-item 组件节点
+      if (item.type.name === 'XtxStepsItem') {
+        dynamicItems.push(item)
+      } else {
+          // 动态生成的 xtx-steps-item 组件节点
+        item.children.forEach(item => {
+          dynamicItems.push(item)
+        })
+      }
+    })
+    // 3. 根据动态节点生成 item 的 jsx 对象
+    const itemsJsx = dynamicItems.map((item, i) => {
+      return <div class="xtx-steps-item" class={{ active: i < this.active }}>
+        <div class="step"><span>{i + 1}</span></div>
+        <div class="title">{item.props.title}</div>
+        <div class="desc">{item.props.desc}</div>
+      </div>
+    })
+    // 4. 插入大容器中
+    return <div class="xtx-steps">{itemsJsx}</div>
+  }
+}
+</script>
+```
+
+使用
+```vue
+    <!-- 步骤条-->
+    <XtxSteps>
+      <XtxStepsItem title="提交订单" desc="2021-03-18 02:11:47" />
+      <XtxStepsItem title="付款成功" desc="2021-03-18 02:11:47" />
+      <XtxStepsItem title="商品发货" desc="2021-03-18 02:11:47" />
+      <XtxStepsItem title="确认收货" />
+      <XtxStepsItem title="订单完成" />
+    </XtxSteps>
+```
+
+4. xtx-steps 设置激活步骤
+```js
+  props: {
+    active: {
+      type: Number,
+      default: 1
+    }
+  },
+```
+```diff
+    const itemsJsx = dynamicItems.map((item, i) => {
++      return <div class="xtx-steps-item" class={{ active: i < props.active }}>
+        <div class="step"><span>{i + 1}</span></div>
+        <div class="title">{item.props.title}</div>
+        <div class="desc">{item.props.desc}</div>
+      </div>
+    })
+```
+
+使用
+```vue
+<XtxSteps :active="3">
+```
+
+5. 使用steps组件显示订单进度
+`src/views/member/order/components/detail-steps.vue`
+```vue
+<template>
+  <div class="detail-steps" style="padding:20px">
+    <XtxSteps :active="order.orderState===6?1:order.orderState">
+      <XtxStepsItem title="提交订单" :desc="order.createTime" />
+      <XtxStepsItem title="付款成功" :desc="order.payTime" />
+      <XtxStepsItem title="商品发货" :desc="order.consignTime" />
+      <XtxStepsItem title="确认收货" :desc="order.evaluationTime" />
+      <XtxStepsItem title="订单完成" :desc="order.endTime" />
+    </XtxSteps>
+  </div>
+</template>
+<script>
+export default {
+  props: {
+    order: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  name: 'DetailSteps'
+}
+</script>
+<style scoped lang="less"></style>
+```
+
+`src/views/member/order/index.vue`
+
+```vue
+    <!-- 步骤条-->
+    <DetailSteps :order="order" />
+```
+```js
+import DetailSteps from './components/detail-steps'
+export default {
+  name: 'OrderDetailPage',
+  components: { DetailAction, DetailSteps },
+```
+
+
+### 物流信息
+大致步骤：
+
+- 基础布局
+- 获取数据，渲染
+- 使用 suspense 渲染 async setup 的组件
+- 复用订单列表的查看物流逻辑
+
+落地代码：
+
+1. 基础布局
+```vue
+<template>
+  <div class="detail-logistics">
+    <p>
+      <span>2016-09-14 15:00:32</span>
+      <span>浦东转运中心公司 已收入</span>
+    </p>
+    <a href="javascript:;">查看物流</a>
+  </div>
+</template>
+<script>
+export default {
+  name: 'DetailLogistics'
+}
+</script>
+<style scoped lang="less">
+.detail-logistics {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 0 30px;
+  background-color: #f5f5f5;
+  margin: 30px 50px 0;
+  > p {
+    flex: 1;
+    span {
+      color: #999;
+      &:first-child {
+        margin-right: 30px;
+      }
+    }
+  }
+  > a {
+    color: @xtxColor;
+    text-align: center;
+  }
+}
+</style>
+```
+
+2. 获取数据，渲染
+```vue
+<template>
+  <div class="detail-logistics" v-if="logistics">
+    <p>
+      <span>{{logistics.list[0].time}}</span>
+      <span>{{logistics.list[0].text}}</span>
+    </p>
+    <a href="javascript:;">查看物流</a>
+  </div>
+  <!-- 查看物流组件 -->
+  <Teleport to="#dailog">
+    <OrderLogistics ref="logisticsOrderCom" />
+  </Teleport>
+</template>
+<script>
+import { ref } from 'vue'
+import { logisticsOrder } from '@/api/order'
+export default {
+  name: 'DetailLogistics',
+  props: {
+    order: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  async setup (props) {
+    const logistics = ref(null)
+    // 模拟加载时间
+    const $sleep = () => new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve()
+      }, 2000)
+    })
+    await $sleep()
+    const data = await logisticsOrder(props.order.id)
+    logistics.value = data.result
+    return { logistics }
+  }
+}
+</script>
+<style scoped lang="less">
+.detail-logistics {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 0 30px;
+  background-color: #f5f5f5;
+  margin: 30px 50px 0;
+  > p {
+    flex: 1;
+    span {
+      color: #999;
+      &:first-child {
+        margin-right: 30px;
+      }
+    }
+  }
+  > a {
+    color: @xtxColor;
+    text-align: center;
+  }
+}
+</style>
+```
+
+使用
+```diff
+    <!-- 物流区块 -->
++    <Suspense  v-if="[3,4,5].includes(order.orderState)">
++      <!-- 组件加载完毕 -->
++      <template #default>
++        <DetailLogistics :order="order" />
++      </template>
++      <!-- 组件加载中显示 -->
++      <template #fallback>
++        <div class="loading">loading</div>
++      </template>
++    </Suspense>
+    <!-- 订单商品信息 -->
+  </div>
+</template>
+<script>
++import DetailLogistics from './components/detail-logistics'
+export default {
+  name: 'OrderDetailPage',
++  components: { DetailAction, DetailSteps, DetailLogistics },
+```
+
+4. 使用订单列表的查看物理逻辑
+
+`src/views/memner/order/index.vue`
+```js
+// 封装逻辑-查看物流
+export const useLogisticsOrder = () => {
+```
+
+`src/views/memner/order/components/detail-logistics.vue`
+```js
+import OrderLogistics from './order-logistics'
+import { useLogisticsOrder } from '../index'
+```
+```diff
+export default {
+  name: 'DetailLogistics',
++  components: { OrderLogistics },
+```
+```diff
+    const data = await logisticsOrder(props.order.id)
+    logistics.value = data.result
++    return { logistics, ...useLogisticsOrder() }
+```
+```diff
++    <a href="javascript:;" @click="onLogisticsOrder(order)">查看物流</a>
+  </div>
+  <!-- 查看物流组件 -->
++  <Teleport to="#dailog">
++    <OrderLogistics ref="logisticsOrderCom" />
++  </Teleport>
+```
+
+
+### 商品信息
+![image](https://zhoushugang.gitee.io/erabbit-client-pc-document/assets/img/1616051972073.f6cda2a1.png)
+
+落地代码：
+
+1. 基础布局
+```vue
+<template>
+  <div class="order-info">
+    <!-- 商品列表 -->
+    <h3>订单商品</h3>
+    <table class="goods-table">
+      <thead>
+        <tr>
+          <th width="400">商品信息</th>
+          <th>单价</th>
+          <th>数量</th>
+          <th>小计</th>
+          <th>实付</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="i in 3" :key="i">
+          <td>
+            <a href="javascript:;" class="product">
+              <img src="https://yanxuan-item.nosdn.127.net/f7a4f643e245d03771d6f12c94e71214.png" alt="" />
+              <div class="info">
+                <p class="name ellipsis">小米电视4A 32英寸</p>
+                <p class="attrs ellipsis">颜色：黑色 尺寸：32寸</p>
+              </div>
+            </a>
+          </td>
+          <td>¥1899</td>
+          <td>1</td>
+          <td>¥1899</td>
+          <td>¥1899</td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 收货信息 -->
+    <h3>收货信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>收<i></i>货<i></i>人：</dt>
+        <dd>周杰伦</dd>
+      </dl>
+      <dl>
+        <dt>联系方式：</dt>
+        <dd>180****1849</dd>
+      </dl>
+      <dl>
+        <dt>收货地址：</dt>
+        <dd>北京海淀区黄平路金燕龙</dd>
+      </dl>
+    </div>
+    <!-- 支付方式及送货时间 -->
+    <h3>支付方式及送货时间</h3>
+    <div class="info-box">
+      <dl>
+        <dt>支付方式：</dt>
+        <dd>180****1849</dd>
+      </dl>
+      <dl>
+        <dt>送货时间：</dt>
+        <dd>双休日、假日送货(适合于家庭地址)</dd>
+      </dl>
+    </div>
+    <!-- 发票信息 -->
+    <h3>发票信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>发票类型：</dt>
+        <dd>电子发票</dd>
+      </dl>
+      <dl>
+        <dt>发票内容：</dt>
+        <dd>日用品</dd>
+      </dl>
+      <dl>
+        <dt>发票抬头：</dt>
+        <dd>个人</dd>
+      </dl>
+    </div>
+    <!-- 订单信息 -->
+    <h3>订单信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>订单编号：</dt>
+        <dd>在线支付</dd>
+      </dl>
+      <dl>
+        <dt>下单时间：</dt>
+        <dd>2018-01-06 17:09:35</dd>
+      </dl>
+    </div>
+    <!-- 汇总信息 -->
+    <div class="sum-info">
+      <div class="info">
+        <div class="item">
+          <label>商品件数：</label>
+          <span>5件</span>
+        </div>
+        <div class="item">
+          <label>商品总价：</label>
+          <span>¥5697</span>
+        </div>
+        <div class="item">
+          <label>运<i></i>费：</label>
+          <span>0</span>
+        </div>
+        <div class="item">
+          <label>应付总额：</label>
+          <span class="price">¥5697</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'OrderInfo'
+}
+</script>
+
+<style scoped lang='less'>
+.order-info {
+  padding: 0 50px;
+  h3 {
+    font-weight: normal;
+    font-size: 16px;
+    padding: 25px 5px;
+  }
+}
+// 商品表格
+.goods-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0 auto;
+  th {
+    font-weight: normal;
+    line-height: 60px;
+    background: #f5f5f5;
+    &:first-child {
+      text-align: left;
+      padding-left: 20px;
+    }
+  }
+  td {
+    border-bottom: 1px solid #f5f5f5;
+    text-align: center;
+    &:first-child {
+      padding-left: 20px;
+      border-left: 1px solid #f5f5f5;
+    }
+    &:last-child {
+      border-right: 1px solid #f5f5f5;
+    }
+  }
+  .product {
+    display: flex;
+    padding: 20px 0;
+    img {
+      width: 70px;
+      height: 70px;
+      border: 1px solid #f5f5f5;
+    }
+    .info {
+      align-self: center;
+      padding-left: 20px;
+      text-align: left;
+      p {
+        margin-bottom: 5px;
+        width: 280px;
+      }
+      .attrs {
+        color: #999;
+      }
+    }
+  }
+}
+// 信息盒子
+.info-box {
+  border:1px solid #f5f5f5;
+  padding: 20px;
+  dl {
+    display: flex;
+    line-height: 30px;
+    dt {
+      width: 80px;
+      color: #999;
+      font-size: 14px;
+      i {
+        display: inline-block;
+        width: 0.5em;
+      }
+    }
+    dd {
+      flex: 1;
+    }
+  }
+}
+// 汇总信息
+.sum-info {
+  padding: 30px 30px 100px 30px;
+  overflow: hidden;
+  .info {
+    width: 250px;
+    height: 160px;
+    float: right;
+    font-size: 16px;
+    .item {
+      line-height: 40px;
+      display: flex;
+      label {
+        width: 90px;
+        i {
+          display: inline-block;
+          width: 2em;
+        }
+      }
+      span {
+        flex: 1;
+        text-align: right;
+        padding-right: 30px;
+        &.price {
+          font-size: 20px;
+          color: @priceColor;
+        }
+      }
+    }
+  }
+}
+</style>
+```
+
+2. 完成渲染
+```vue
+<template>
+  <div class="order-info">
+    <!-- 商品列表 -->
+    <h3>订单商品</h3>
+    <table class="goods-table">
+      <thead>
+        <tr>
+          <th width="400">商品信息</th>
+          <th>单价</th>
+          <th>数量</th>
+          <th>小计</th>
+          <th>实付</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in order.skus" :key="item.id">
+          <td>
+            <a href="javascript:;" class="product">
+              <img :src="item.image" alt="" />
+              <div class="info">
+                <p class="name ellipsis">{{item.name}}</p>
+                <p class="attrs ellipsis">{{item.attrsText}}</p>
+              </div>
+            </a>
+          </td>
+          <td>¥{{item.curPrice}}</td>
+          <td>{{item.quantity}}</td>
+          <td>¥{{item.realPay}}</td>
+          <td>¥{{item.realPay}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 收货信息 -->
+    <h3>收货信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>收<i></i>货<i></i>人：</dt>
+        <dd>{{order.receiverContact}}</dd>
+      </dl>
+      <dl>
+        <dt>联系方式：</dt>
+        <dd>{{order.receiverMobile}}</dd>
+      </dl>
+      <dl>
+        <dt>收货地址：</dt>
+        <dd>{{order.receiverAddress}}</dd>
+      </dl>
+    </div>
+    <!-- 支付方式及送货时间 -->
+    <h3>支付方式及送货时间</h3>
+    <div class="info-box">
+      <dl>
+        <dt>支付方式：</dt>
+        <dd>180****1849</dd>
+      </dl>
+      <dl>
+        <dt>送货时间：</dt>
+        <dd>双休日、假日送货(适合于家庭地址)</dd>
+      </dl>
+    </div>
+    <!-- 发票信息 -->
+    <h3>发票信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>发票类型：</dt>
+        <dd>电子发票</dd>
+      </dl>
+      <dl>
+        <dt>发票内容：</dt>
+        <dd>日用品</dd>
+      </dl>
+      <dl>
+        <dt>发票抬头：</dt>
+        <dd>个人</dd>
+      </dl>
+    </div>
+    <!-- 订单信息 -->
+    <h3>订单信息</h3>
+    <div class="info-box">
+      <dl>
+        <dt>订单编号：</dt>
+        <dd>在线支付</dd>
+      </dl>
+      <dl>
+        <dt>下单时间：</dt>
+        <dd>{{order.createTime}}</dd>
+      </dl>
+    </div>
+    <!-- 汇总信息 -->
+    <div class="sum-info">
+      <div class="info">
+        <div class="item">
+          <label>商品件数：</label>
+          <span>{{order.totalNum}}件</span>
+        </div>
+        <div class="item">
+          <label>商品总价：</label>
+          <span>¥{{order.totalMoney}}</span>
+        </div>
+        <div class="item">
+          <label>运<i></i>费：</label>
+          <span>{{order.postFee}}</span>
+        </div>
+        <div class="item">
+          <label>应付总额：</label>
+          <span class="price">¥{{order.payMoney}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'OrderInfo',
+  props: {
+    order: {
+      type: Object,
+      default: () => ({})
+    }
+  }
+}
+</script>
+```
+
+### 取消订单
+
+> 完成订单详情的取消订单
+
+`src/views/member/order/index.vue`
+```diff
+// 封装逻辑-取消订单
++ export const useCancelOrder = () => {
+```
+
+`src/views/member/order/components/order-action.vue`
+```js
+import OrderCancel from './order-cancel'
+import { useCancelOrder } from '../index'
+```
+```diff
+  setup () {
++    return { orderStatus, ...useCancelOrder() }
+  }
+```
+```vue
+    <!-- 取消订单组件 -->
+    <Teleport to="#dailog">
+      <OrderCancel ref="orderCancelCom" />
+    </Teleport>
+```
+```diff
+      <template v-if="order.orderState===1">
+        <XtxButton @click="$router.push('/member/pay?id='+order.id)" type="primary" size="small">立即付款</XtxButton>
++       <XtxButton @click="onCancelOrder(order)" type="gray" size="small">取消订单</XtxButton>
+      </template>
+```
+
+### 确认收货
+
+> 完成订单详情的确认收货
+
+`src/views/member/order/index.vue`
+```diff
+// 封装逻辑-确认收货
++ export const useConfirmOrder = () => {
+```
+`src/views/member/order/components/order-action.vue`
+```diff
++import { useCancelOrder, useConfirmOrder } from '../index'
+```
+```diff
+  setup () {
++    return { orderStatus, ...useCancelOrder(), ...useConfirmOrder() }
+  }
+```
+```vue
+<XtxButton @click="onConfirmOrder(order)" type="primary" size="small">确认收货</XtxButton>
+```
+
+## 再次购买
+
+> 目的：完成再次购买
+
+大致步骤：
+
+- 当你点击再次购物车，传递订单ID到结算页面
+- 在结算页码根据地址栏是否又订单ID来判断结算方式
+    - 没有ID：结算购物车种选中的商品
+    - 如有ID：结算该订单ID下的商品
+        - 提供一个API函数去生成结算信息
+
+落地代码：
+
+`src/api/order.js` 订单商品结算函数
+```js
+/**
+ * 获取再次购买的订单结算信息
+ * @param {String} id - 订单ID
+ * @returns
+ */
+export const findOrderRepurchase = (id) => {
+  return request(`/member/order/repurchase/${id}`, 'get')
+}
+```
+
+所有的再次购买跳转到结算页面
+
+`order-item.vue`
+```vue
+<p v-if="[2,3,4,5].includes(order.orderState)"><a @click="$router.push(`/member/checkout?orderId=${order.id}`)" href="javascript:;">再次购买</a></p>
+```
+
+`detail-action.vue`
+```diff
+     <template v-if="order.orderState===2">
++        <XtxButton @click="$router.push(`/member/checkout?orderId=${order.id}`)" type="plain" size="small">再次购买</XtxButton>
+      </template>
+      <template v-if="order.orderState===3">
+        <XtxButton @click="onConfirmOrder(order)" type="primary" size="small">确认收货</XtxButton>
++        <XtxButton @click="$router.push(`/member/checkout?orderId=${order.id}`)" type="plain" size="small">再次购买</XtxButton>
+      </template>
+      <template v-if="order.orderState===4">
+        <XtxButton type="primary" size="small">评价商品</XtxButton>
++        <XtxButton @click="$router.push(`/member/checkout?orderId=${order.id}`)" type="plain" size="small">再次购买</XtxButton>
+        <XtxButton type="gray" size="small">申请售后</XtxButton>
+      </template>
+      <template v-if="order.orderState===5">
+        <XtxButton type="primary" size="small">查看评价</XtxButton>
++        <XtxButton @click="$router.push(`/member/checkout?orderId=${order.id}`)" type="plain" size="small">再次购买</XtxButton>
+        <XtxButton type="gray" size="small">申请售后</XtxButton>
+      </template>
+```
+
+来到结算页码，区分下结算场景 `src/views/member/pay/checkout.vue`
+```js
+    const route = useRoute()
+    if (route.query.orderId) {
+      // 再次购买结算
+      findOrderRepurchase(route.query.orderId).then(data => {
+        checkoutInfo.value = data.result
+        // 设置订单商品数据
+        order.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+      })
+    } else {
+      // 购物车结算
+      findOrderPre().then(data => {
+        checkoutInfo.value = data.result
+        // 设置订单商品数据
+        order.goods = data.result.goods.map(({ skuId, count }) => ({ skuId, count }))
+      })
+    }
+```
